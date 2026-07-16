@@ -17,6 +17,12 @@ export const AdminTeams = () => {
   const [playerForm, setPlayerForm] = useState({ full_name: '', dni: '', gender: 'M', shirt_number: '', nickname: '' });
   const [isSavingForm, setIsSavingForm] = useState(false);
 
+  // Team CRUD State
+  const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
+  const [editingTeam, setEditingTeam] = useState<any | null>(null);
+  const [teamForm, setTeamForm] = useState({ name: '', captain_name: '', captain_email: '', status: 'pending' });
+  const [isSavingTeam, setIsSavingTeam] = useState(false);
+
   // Photo Upload State
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [uploadingPlayerId, setUploadingPlayerId] = useState<string | null>(null);
@@ -160,6 +166,51 @@ export const AdminTeams = () => {
     alert('¡Link público copiado al portapapeles!');
   };
 
+  // Team CRUD Handlers
+  const openCreateTeam = () => {
+    setTeamForm({ name: '', captain_name: '', captain_email: '', status: 'pending' });
+    setEditingTeam(null);
+    setIsTeamModalOpen(true);
+  };
+
+  const openEditTeam = (team: any) => {
+    setTeamForm({
+      name: team.name || '',
+      captain_name: team.captain_name || '',
+      captain_email: team.captain_email || '',
+      status: team.status || 'pending',
+    });
+    setEditingTeam(team);
+    setIsTeamModalOpen(true);
+  };
+
+  const closeTeamModal = () => {
+    setIsTeamModalOpen(false);
+    setEditingTeam(null);
+  };
+
+  const handleSaveTeam = async () => {
+    if (!teamForm.name.trim()) return alert('El nombre del equipo es obligatorio.');
+    setIsSavingTeam(true);
+    if (editingTeam) {
+      const { error } = await supabase.from('teams').update(teamForm).eq('id', editingTeam.id);
+      if (error) alert('Error al actualizar equipo: ' + error.message);
+      else { closeTeamModal(); fetchTeams(); }
+    } else {
+      const { error } = await supabase.from('teams').insert([teamForm]);
+      if (error) alert('Error al crear equipo: ' + error.message);
+      else { closeTeamModal(); fetchTeams(); }
+    }
+    setIsSavingTeam(false);
+  };
+
+  const handleDeleteTeam = async (team: any) => {
+    if (!window.confirm(`¿Estás seguro de que deseas eliminar el equipo "${team.name}"? Se eliminarán también todos sus jugadores. Esta acción no se puede deshacer.`)) return;
+    const { error } = await supabase.from('teams').delete().eq('id', team.id);
+    if (error) alert('Error al eliminar equipo: ' + error.message);
+    else fetchTeams();
+  };
+
   if (loading) return <div className="text-center p-10 text-slate-500 font-bold">Cargando equipos...</div>;
 
   return (
@@ -172,6 +223,12 @@ export const AdminTeams = () => {
         <h2 className="text-2xl sm:text-3xl font-condensed font-bold text-sanatorio-blue flex items-center gap-3">
           <Users className="text-sanatorio-pink" /> Gestión de Equipos
         </h2>
+        <button
+          onClick={openCreateTeam}
+          className="flex items-center gap-2 bg-sanatorio-blue text-white px-4 py-2.5 rounded-xl font-bold text-sm hover:bg-sanatorio-blue/90 transition-colors shadow-md"
+        >
+          <Plus className="w-4 h-4" /> Nuevo Equipo
+        </button>
       </div>
 
       <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
@@ -225,6 +282,12 @@ export const AdminTeams = () => {
                             <XCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                           </button>
                         )}
+                        <button onClick={() => openEditTeam(team)} className="p-1.5 sm:p-2 bg-slate-50 text-slate-600 hover:bg-slate-200 rounded-lg transition-colors" title="Editar equipo">
+                          <Edit2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </button>
+                        <button onClick={() => handleDeleteTeam(team)} className="p-1.5 sm:p-2 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors" title="Eliminar equipo">
+                          <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -436,6 +499,86 @@ export const AdminTeams = () => {
         accept="image/*" 
         className="hidden" 
       />
+
+      {/* Team Modal Form */}
+      {isTeamModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="flex justify-between items-center p-5 border-b border-slate-100 bg-slate-50">
+              <h3 className="font-bold text-lg text-sanatorio-blue flex items-center gap-2">
+                <Users className="w-5 h-5 text-sanatorio-pink" />
+                {editingTeam ? 'Editar Equipo' : 'Crear Nuevo Equipo'}
+              </h3>
+              <button onClick={closeTeamModal} className="text-slate-400 hover:text-red-500 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Nombre del Equipo *</label>
+                <input
+                  type="text"
+                  value={teamForm.name}
+                  onChange={(e) => setTeamForm({ ...teamForm, name: e.target.value })}
+                  className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sanatorio-pink focus:border-sanatorio-pink outline-none"
+                  placeholder="Ej: Guardia FC"
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Nombre del Capitán</label>
+                <input
+                  type="text"
+                  value={teamForm.captain_name}
+                  onChange={(e) => setTeamForm({ ...teamForm, captain_name: e.target.value })}
+                  className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sanatorio-pink focus:border-sanatorio-pink outline-none"
+                  placeholder="Ej: Juan Pérez"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Email del Capitán</label>
+                <input
+                  type="email"
+                  value={teamForm.captain_email}
+                  onChange={(e) => setTeamForm({ ...teamForm, captain_email: e.target.value })}
+                  className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sanatorio-pink focus:border-sanatorio-pink outline-none"
+                  placeholder="Ej: juan@sanatorio.com"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Estado</label>
+                <select
+                  value={teamForm.status}
+                  onChange={(e) => setTeamForm({ ...teamForm, status: e.target.value })}
+                  className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sanatorio-pink outline-none bg-white"
+                >
+                  <option value="pending">Pendiente</option>
+                  <option value="active">Activo</option>
+                  <option value="inactive">Inactivo</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="p-5 border-t border-slate-100 flex justify-end gap-3 bg-slate-50">
+              <button
+                onClick={closeTeamModal}
+                className="px-5 py-2.5 rounded-xl font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveTeam}
+                disabled={isSavingTeam}
+                className="px-5 py-2.5 rounded-xl font-bold text-white bg-sanatorio-blue hover:bg-sanatorio-blue/90 disabled:opacity-50 transition-colors flex items-center gap-2"
+              >
+                {isSavingTeam ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                {editingTeam ? 'Guardar Cambios' : 'Crear Equipo'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
