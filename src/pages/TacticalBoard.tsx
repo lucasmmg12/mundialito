@@ -93,7 +93,7 @@ export function TacticalBoard() {
     }
   };
 
-  const handleTouchStart = (e: React.TouchEvent, playerId: string) => {
+  const handleTouchStart = (_e: React.TouchEvent, playerId: string) => {
     setActiveTouchId(playerId);
   };
 
