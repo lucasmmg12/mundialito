@@ -20,7 +20,7 @@ const AudioPlayer = () => {
     // Intentar autoplay
     const attemptPlay = async () => {
       try {
-        if (audioRef.current) {
+        if (audioRef.current && !isPlaying) {
           audioRef.current.volume = 0.3; // Volumen suave
           await audioRef.current.play();
           setIsPlaying(true);
@@ -31,14 +31,28 @@ const AudioPlayer = () => {
     };
     
     attemptPlay();
-  }, []);
+
+    const handleFirstInteraction = () => {
+      if (!isPlaying) {
+        attemptPlay();
+      }
+      document.removeEventListener('click', handleFirstInteraction);
+    };
+
+    document.addEventListener('click', handleFirstInteraction);
+
+    return () => {
+      document.removeEventListener('click', handleFirstInteraction);
+    };
+  }, [isPlaying]);
 
   const togglePlay = () => {
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause();
       } else {
-        audioRef.current.play();
+        audioRef.current.volume = 0.3;
+        audioRef.current.play().catch(e => console.error("Error playing audio", e));
       }
       setIsPlaying(!isPlaying);
     }
