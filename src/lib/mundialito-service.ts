@@ -89,14 +89,56 @@ export const startMatch = async (matchId: string) => {
 };
 
 export const endMatch = async (matchId: string) => {
-  const { data, error } = await supabase
+  // 1. Terminar partido
+  const { data: match, error } = await supabase
     .from('matches')
     .update({ status: 'completed' })
     .eq('id', matchId)
     .select()
     .single();
   if (error) throw error;
-  return data;
+
+  // 2. Calcular puntos del Prode
+  try {
+    const { data: predictions } = await supabase
+      .from('prode_predictions')
+      .select('*')
+      .eq('match_id', matchId);
+
+    if (predictions && match) {
+      for (const pred of predictions) {
+        let points = 0;
+        
+        // Exact match (3 pts)
+        if (pred.home_goals === match.home_goals && pred.away_goals === match.away_goals) {
+          points = 3;
+        } else {
+          // Check if guessed the winner or tie (1 pt)
+          const actualResult = match.home_goals > match.away_goals ? 'home' : (match.home_goals < match.away_goals ? 'away' : 'tie');
+          const predictedResult = pred.home_goals > pred.away_goals ? 'home' : (pred.home_goals < pred.away_goals ? 'away' : 'tie');
+          
+          if (actualResult === predictedResult) {
+            points = 1;
+          }
+        }
+
+        if (points > 0) {
+          // Update prediction points
+          await supabase.from('prode_predictions').update({ points_awarded: points }).eq('id', pred.id);
+          
+          // Update user profile total points
+          const { data: profile } = await supabase.from('profiles').select('total_points').eq('id', pred.user_id).single();
+          if (profile) {
+            await supabase.from('profiles').update({ total_points: (profile.total_points || 0) + points }).eq('id', pred.user_id);
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Error calculating Prode points", err);
+  }
+
+  return match;
 };
 
 export const recordMatchEvent = async (matchId: string, playerId: string, eventType: 'goal' | 'assist' | 'yellow_card' | 'red_card', minute: number = 0) => {
