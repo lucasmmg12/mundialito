@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Trophy, Upload, AlertCircle } from 'lucide-react';
-import { Team } from '../lib/mundialito-service';
+import type { Team } from '../lib/mundialito-service';
 
 export const ProdeAuth = () => {
   const { session } = useAuth();

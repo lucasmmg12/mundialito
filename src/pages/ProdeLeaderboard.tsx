@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Medal, Trophy } from 'lucide-react';
 import { Link } from 'react-router-dom';

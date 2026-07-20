@@ -1,5 +1,21 @@
 import { supabase } from './supabase';
 
+export interface Team {
+  id: string;
+  name: string;
+  logo_url?: string;
+}
+
+export interface Match {
+  id: string;
+  match_date: string;
+  status: string;
+  home_team_id: string;
+  away_team_id: string;
+  home_goals: number;
+  away_goals: number;
+}
+
 export interface EventPost {
   id: string;
   author_name: string;

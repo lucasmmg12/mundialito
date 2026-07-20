@@ -1,17 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { calculateMatchProbability } from '../lib/probability';
-import { Trophy, AlertCircle, CheckCircle, BarChart3, Medal } from 'lucide-react';
-import { Match, Team } from '../lib/mundialito-service';
+import { Trophy, CheckCircle, BarChart3, Medal } from 'lucide-react';
+import type { Match, Team } from '../lib/mundialito-service';
 
 export const ProdeDashboard = () => {
   const { session, user } = useAuth();
   const navigate = useNavigate();
   const [matches, setMatches] = useState<(Match & { home_team: Team; away_team: Team })[]>([]);
   const [allMatches, setAllMatches] = useState<any[]>([]);
-  const [predictions, setPredictions] = useState<Record<string, { home: number; away: number; saved: boolean }>>({});
+  const [predictions, setPredictions] = useState<Record<string, { home: number | ''; away: number | ''; saved: boolean }>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
 
