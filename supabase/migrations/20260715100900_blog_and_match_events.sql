@@ -46,3 +46,7 @@ CREATE POLICY "Public can view match_events" ON public.match_events FOR SELECT U
 CREATE POLICY "Admins can insert match_events" ON public.match_events FOR INSERT TO authenticated WITH CHECK (true);
 CREATE POLICY "Admins can update match_events" ON public.match_events FOR UPDATE TO authenticated USING (true);
 CREATE POLICY "Admins can delete match_events" ON public.match_events FOR DELETE TO authenticated USING (true);
+
+-- 5. GRANTS
+GRANT ALL ON TABLE public.event_posts TO anon, authenticated, service_role;
+GRANT ALL ON TABLE public.match_events TO anon, authenticated, service_role;

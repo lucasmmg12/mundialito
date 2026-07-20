@@ -116,21 +116,15 @@ function App() {
                 {/* Logos */}
                 <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                   <img 
-                    src="@logosanatorio" 
+                    src="/logosanatorio.png" 
                     alt="Sanatorio Argentino" 
                     className="h-10 w-auto object-contain"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150x50?text=Sanatorio+Argentino';
-                    }}
                   />
                   <div className="h-10 w-px bg-slate-300 mx-2 hidden sm:block"></div>
                   <img 
                     src="/mundialito.jpeg" 
                     alt="Mundialito" 
                     className="h-12 w-auto object-contain rounded-full shadow-sm"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://via.placeholder.com/50?text=Logo';
-                    }}
                   />
                   <div className="ml-2 flex flex-col">
                     <span className="font-condensed font-bold text-sanatorio-blue text-lg leading-tight">
