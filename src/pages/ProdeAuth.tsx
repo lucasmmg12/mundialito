@@ -99,7 +99,12 @@ export const ProdeAuth = () => {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-[80vh] flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative">
+      <div className="w-full max-w-md mb-4">
+        <Link to="/" className="inline-flex items-center gap-2 text-slate-500 hover:text-sanatorio-pink transition-colors font-semibold bg-white/50 px-4 py-2 rounded-xl w-fit">
+          ← Volver al Inicio
+        </Link>
+      </div>
       <div className="max-w-md w-full space-y-8 bg-white/80 backdrop-blur-md p-8 rounded-3xl shadow-xl border border-white/40">
         <div className="text-center">
           <div className="mx-auto h-16 w-16 bg-sanatorio-blue/10 flex items-center justify-center rounded-2xl mb-4">

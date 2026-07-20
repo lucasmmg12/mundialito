@@ -114,7 +114,7 @@ function App() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex justify-between h-20 items-center">
                 {/* Logos */}
-                <div className="flex items-center gap-3">
+                <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                   <img 
                     src="@logosanatorio" 
                     alt="Sanatorio Argentino" 
@@ -140,7 +140,7 @@ function App() {
                       Sistema de Gestión
                     </span>
                   </div>
-                </div>
+                </Link>
 
                 {/* Desktop Navigation */}
                 <Navigation />

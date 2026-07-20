@@ -113,7 +113,11 @@ export const ProdeDashboard = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex justify-between items-end mb-8">
+      <Link to="/" className="inline-flex items-center gap-2 text-slate-500 hover:text-sanatorio-pink transition-colors font-semibold mb-4 bg-white/50 px-4 py-2 rounded-xl w-fit">
+        ← Volver al Inicio
+      </Link>
+      
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-condensed font-bold text-sanatorio-blue flex items-center gap-3">
             <Trophy className="w-8 h-8 text-sanatorio-pink" /> 
@@ -121,8 +125,8 @@ export const ProdeDashboard = () => {
           </h1>
           <p className="text-slate-600 mt-2">Acierta el resultado exacto (3pts) o el ganador (1pt).</p>
         </div>
-        <Link to="/prode/ranking" className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl text-sanatorio-blue font-bold shadow-sm border border-slate-200 hover:border-sanatorio-pink transition-colors">
-          <Medal className="w-5 h-5 text-yellow-500" /> Ver Ranking
+        <Link to="/prode/ranking" className="flex items-center gap-2 bg-white px-4 py-3 rounded-xl text-sanatorio-blue font-bold shadow-sm border border-slate-200 hover:border-sanatorio-pink transition-colors w-full md:w-auto justify-center">
+          <Medal className="w-5 h-5 text-yellow-500" /> Ver Ranking General
         </Link>
       </div>
 

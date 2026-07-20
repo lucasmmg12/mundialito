@@ -189,7 +189,7 @@ export const PublicDashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* STANDINGS TABLE */}
-        <div className="tour-standings lg:col-span-2 bg-white/95 backdrop-blur-sm rounded-3xl shadow-lg border-2 border-slate-100 overflow-hidden">
+        <div className="tour-standings lg:col-span-2 order-2 lg:order-1 bg-white/95 backdrop-blur-sm rounded-3xl shadow-lg border-2 border-slate-100 overflow-hidden">
           <div className="px-8 py-6 border-b-4 border-sanatorio-pink flex justify-between items-center bg-gradient-to-r from-slate-50 to-white">
             <h2 className="text-2xl font-condensed font-bold text-sanatorio-blue flex items-center gap-3 uppercase tracking-wide">
               <Trophy className="text-sanatorio-pink w-6 h-6" /> Tabla de Posiciones
@@ -255,7 +255,85 @@ export const PublicDashboard = () => {
         </div>
 
         {/* LATEST RESULTS WIDGET */}
-        <div className="tour-results flex flex-col gap-6">
+        <div className="tour-results flex flex-col gap-6 order-1 lg:order-2">
+          
+        {/* PRODE WIDGET (Instagram style) */}
+        <div className="bg-white rounded-3xl shadow-lg border border-slate-100 overflow-hidden flex flex-col">
+          {/* Header (Instagram style) */}
+          <div className="p-4 flex items-center justify-between border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-yellow-400 via-sanatorio-pink to-purple-500 p-[2px]">
+                <div className="bg-white rounded-full p-[2px] w-full h-full">
+                  <img src="/mundialito.jpeg" alt="Avatar" className="w-full h-full rounded-full object-cover" />
+                </div>
+              </div>
+              <div>
+                <h4 className="font-bold text-sm text-slate-800 leading-none mb-1">mundialito_sanatorio</h4>
+                <p className="text-xs text-slate-500 leading-none">Torneo 2026</p>
+              </div>
+            </div>
+            <div className="text-slate-400 tracking-widest font-bold">•••</div>
+          </div>
+          
+          {/* Image */}
+          <div className="relative aspect-square bg-slate-50">
+            <img src="/prode.png" alt="Prode Oficial" className="w-full h-full object-cover" />
+          </div>
+          
+          {/* Actions & Caption */}
+          <div className="p-4">
+            <div className="flex items-center gap-4 mb-3 text-slate-700">
+              <Trophy className="w-7 h-7 hover:text-sanatorio-pink transition-colors cursor-pointer" />
+              <Star className="w-7 h-7 hover:text-yellow-500 transition-colors cursor-pointer" />
+            </div>
+            <p className="text-sm text-slate-800 mb-4 leading-relaxed">
+              <span className="font-bold mr-2">mundialito_sanatorio</span>
+              ¡Ya está habilitado el PRODE OFICIAL! 🏆 Acierta los resultados de los partidos, suma puntos y competí por el 1º puesto del ranking general. ¿Qué esperás para jugar?
+            </p>
+            <Link to="/prode/auth" className="block w-full text-center bg-gradient-to-r from-sanatorio-pink to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-md">
+              Participar Ahora
+            </Link>
+          </div>
+        </div>
+
+        {/* SHARE WIDGET (Instagram style) */}
+        <div className="bg-white rounded-3xl shadow-lg border border-slate-100 overflow-hidden flex flex-col">
+          {/* Header (Instagram style) */}
+          <div className="p-4 flex items-center justify-between border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-yellow-400 via-sanatorio-pink to-purple-500 p-[2px]">
+                <div className="bg-white rounded-full p-[2px] w-full h-full">
+                  <img src="/mundialito.jpeg" alt="Avatar" className="w-full h-full rounded-full object-cover" />
+                </div>
+              </div>
+              <div>
+                <h4 className="font-bold text-sm text-slate-800 leading-none mb-1">mundialito_sanatorio</h4>
+                <p className="text-xs text-slate-500 leading-none">Torneo 2026</p>
+              </div>
+            </div>
+            <div className="text-slate-400 tracking-widest font-bold">•••</div>
+          </div>
+          
+          {/* Image */}
+          <div className="relative aspect-square bg-slate-50">
+            <img src="/mundialitocompartir.jpg" alt="Compartí tu experiencia" className="w-full h-full object-cover" />
+          </div>
+          
+          {/* Actions & Caption */}
+          <div className="p-4">
+            <div className="flex items-center gap-4 mb-3 text-slate-700">
+              <Image className="w-7 h-7 hover:text-sanatorio-blue transition-colors cursor-pointer" />
+            </div>
+            <p className="text-sm text-slate-800 mb-4 leading-relaxed">
+              <span className="font-bold mr-2">mundialito_sanatorio</span>
+              ¡Compartí tu experiencia dentro de la cancha! 📸 Entrá al Blog oficial del torneo, subí fotos de tu equipo, dejá comentarios y vivamos juntos esta fiesta del deporte.
+            </p>
+            <Link to="/blog" className="block w-full text-center bg-sanatorio-blue hover:bg-blue-800 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-md">
+              Ir al Blog del Evento
+            </Link>
+          </div>
+        </div>
+
         <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-lg border-2 border-slate-100 overflow-hidden flex flex-col">
           <div className="px-8 py-6 border-b-4 border-sanatorio-blue bg-gradient-to-r from-slate-50 to-white">
             <h2 className="text-xl font-condensed font-bold text-sanatorio-blue uppercase tracking-wide flex items-center gap-2">
