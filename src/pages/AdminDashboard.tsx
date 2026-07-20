@@ -93,6 +93,21 @@ export const AdminDashboard = () => {
     );
   }
 
+  if (session.user.email !== 'lmarinero@sanatorioargentino.com.ar') {
+    return (
+      <div className="max-w-md mx-auto bg-white p-8 rounded-3xl shadow-xl text-center mt-20 border border-slate-100">
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Lock className="w-8 h-8 text-red-500" />
+        </div>
+        <h2 className="text-2xl font-bold text-slate-800 mb-2">Acceso Denegado</h2>
+        <p className="text-slate-500 mb-6">Esta sección es exclusiva para la administración del torneo (lmarinero@sanatorioargentino.com.ar).</p>
+        <button onClick={handleLogout} className="bg-sanatorio-blue text-white font-bold px-6 py-3 rounded-xl hover:bg-blue-900 transition-colors w-full">
+          Cerrar Sesión y Volver
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto space-y-8">
       <div className="flex justify-between items-center bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-sm border border-slate-100">

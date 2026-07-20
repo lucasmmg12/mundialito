@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Activity, Plus, Save, ArrowLeft, RefreshCw, CheckCircle, Clock, PlayCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Activity, Plus, Save, ArrowLeft, RefreshCw, CheckCircle, Clock, PlayCircle, Lock } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { LiveMatchPanel } from '../../components/LiveMatchPanel';
 import { startMatch } from '../../lib/mundialito-service';
+import { useAuth } from '../../contexts/AuthContext';
 
 export const AdminMatches = () => {
+  const { session } = useAuth();
+  const navigate = useNavigate();
   const [matches, setMatches] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,6 +62,21 @@ export const AdminMatches = () => {
     
     setLoading(false);
   };
+
+  if (!session || session.user.email !== 'lmarinero@sanatorioargentino.com.ar') {
+    return (
+      <div className="max-w-md mx-auto bg-white p-8 rounded-3xl shadow-xl text-center mt-20 border border-slate-100">
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Lock className="w-8 h-8 text-red-500" />
+        </div>
+        <h2 className="text-2xl font-bold text-slate-800 mb-2">Acceso Denegado</h2>
+        <p className="text-slate-500 mb-6">Esta sección es exclusiva para la administración del torneo.</p>
+        <button onClick={() => navigate('/')} className="bg-sanatorio-blue text-white font-bold px-6 py-3 rounded-xl hover:bg-blue-900 transition-colors w-full">
+          Volver al Inicio
+        </button>
+      </div>
+    );
+  }
 
   const handleSaveMatch = async (e: React.FormEvent) => {
     e.preventDefault();
