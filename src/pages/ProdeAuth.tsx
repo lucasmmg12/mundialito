@@ -2,8 +2,62 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Trophy, Upload, AlertCircle } from 'lucide-react';
+import { Trophy, Upload, AlertCircle, ChevronDown } from 'lucide-react';
 import type { Team } from '../lib/mundialito-service';
+
+const CustomTeamSelect = ({ value, onChange, teams }: { value: string, onChange: (v: string) => void, teams: Team[] }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const selected = teams.find(t => t.id === value);
+  
+  return (
+    <div className="relative">
+      <div 
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer hover:border-sanatorio-blue transition-colors shadow-sm"
+      >
+        <div className="flex items-center gap-3">
+           {selected && selected.logo_url ? (
+             <img src={selected.logo_url} alt={selected.name} className="w-8 h-8 rounded-full object-cover border border-slate-100 shadow-sm bg-white" />
+           ) : (
+             <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-400 border border-slate-200">-</div>
+           )}
+           <span className="font-semibold text-slate-700 truncate">{selected ? selected.name : '(Sin equipo / Espectador)'}</span>
+        </div>
+        <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+      </div>
+      
+      {isOpen && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+          <div className="absolute top-full mt-2 w-full bg-white border border-slate-100 rounded-2xl shadow-2xl z-50 max-h-64 overflow-y-auto py-2 animate-in fade-in slide-in-from-top-2">
+            <div
+              onClick={() => { onChange(""); setIsOpen(false); }}
+              className={`flex items-center gap-3 px-4 py-3 hover:bg-slate-50 cursor-pointer transition-colors ${value === "" ? 'bg-sanatorio-blue/5 border-l-4 border-sanatorio-blue' : 'border-l-4 border-transparent'}`}
+            >
+              <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-sm font-bold text-slate-400 border border-slate-200">-</div>
+              <span className={`font-semibold ${value === "" ? 'text-sanatorio-blue' : 'text-slate-600'}`}>(Sin equipo / Espectador)</span>
+            </div>
+            
+            {teams.map((t) => (
+              <div
+                key={t.id}
+                onClick={() => { onChange(t.id); setIsOpen(false); }}
+                className={`flex items-center gap-3 px-4 py-3 hover:bg-slate-50 cursor-pointer transition-colors ${value === t.id ? 'bg-sanatorio-blue/5 border-l-4 border-sanatorio-blue' : 'border-l-4 border-transparent'}`}
+              >
+                 {t.logo_url ? (
+                   <img src={t.logo_url} alt={t.name} className="w-10 h-10 rounded-full object-cover shadow-sm bg-white border border-slate-100" />
+                 ) : (
+                   <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-sm font-bold text-slate-400 border border-slate-200">{t.name.substring(0,2).toUpperCase()}</div>
+                 )}
+                 <span className={`font-semibold ${value === t.id ? 'text-sanatorio-blue' : 'text-slate-600'}`}>{t.name}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
 
 export const ProdeAuth = () => {
   const { session } = useAuth();
@@ -142,16 +196,11 @@ export const ProdeAuth = () => {
                 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Tu Equipo</label>
-                  <select
-                    value={teamId}
-                    onChange={(e) => setTeamId(e.target.value)}
-                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-sanatorio-blue focus:border-sanatorio-blue transition-colors"
-                  >
-                    <option value="">(Sin equipo / Espectador)</option>
-                    {teams.map(t => (
-                      <option key={t.id} value={t.id}>{t.name}</option>
-                    ))}
-                  </select>
+                  <CustomTeamSelect 
+                    value={teamId} 
+                    onChange={setTeamId} 
+                    teams={teams} 
+                  />
                 </div>
 
                 <div>
