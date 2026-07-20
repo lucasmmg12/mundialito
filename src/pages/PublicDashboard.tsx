@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Trophy, Activity, Star, Target, Shield, Lock, BookOpen, Calendar } from 'lucide-react';
+import { Trophy, Activity, Star, Target, Shield, Lock, BookOpen, Calendar, Image } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Link } from 'react-router-dom';
 import { Onboarding } from '../components/Onboarding';
