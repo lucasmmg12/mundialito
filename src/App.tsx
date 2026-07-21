@@ -15,15 +15,17 @@ import { useState, useRef, useEffect } from 'react';
 const AudioPlayer = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const hasUserInteracted = useRef(false);
 
   useEffect(() => {
     // Intentar autoplay
     const attemptPlay = async () => {
       try {
-        if (audioRef.current && !isPlaying) {
+        if (audioRef.current) {
           audioRef.current.volume = 0.3; // Volumen suave
           await audioRef.current.play();
           setIsPlaying(true);
+          hasUserInteracted.current = true;
         }
       } catch (err) {
         console.log("Autoplay prevenido por el navegador", err);
@@ -33,8 +35,12 @@ const AudioPlayer = () => {
     attemptPlay();
 
     const handleFirstInteraction = () => {
-      if (!isPlaying) {
-        attemptPlay();
+      if (!hasUserInteracted.current && audioRef.current) {
+        audioRef.current.volume = 0.3;
+        audioRef.current.play().then(() => {
+          setIsPlaying(true);
+          hasUserInteracted.current = true;
+        }).catch(e => console.log("Error", e));
       }
       document.removeEventListener('click', handleFirstInteraction);
     };
@@ -44,17 +50,22 @@ const AudioPlayer = () => {
     return () => {
       document.removeEventListener('click', handleFirstInteraction);
     };
-  }, [isPlaying]);
+  }, []); // Run only once on mount
 
-  const togglePlay = () => {
+  const togglePlay = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevenir que suba al document si es la primera vez
+    hasUserInteracted.current = true;
+    
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause();
+        setIsPlaying(false);
       } else {
         audioRef.current.volume = 0.3;
-        audioRef.current.play().catch(e => console.error("Error playing audio", e));
+        audioRef.current.play().then(() => {
+          setIsPlaying(true);
+        }).catch(e => console.error("Error playing audio", e));
       }
-      setIsPlaying(!isPlaying);
     }
   };
 

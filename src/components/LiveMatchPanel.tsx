@@ -14,7 +14,7 @@ export function LiveMatchPanel({ match, onEndMatch }: Props) {
   
   // Local score state (optimistic)
   const [score, setScore] = useState({ home: match.home_goals || 0, away: match.away_goals || 0 });
-  const [eventsLog, setEventsLog] = useState<string[]>([]);
+  const [eventsLog, setEventsLog] = useState<{id: string, action: string, text: string}[]>([]);
   
   // Event action state
   const [pendingAction, setPendingAction] = useState<'goal'|'assist'|'yellow_card'|'red_card'|null>(null);
@@ -54,7 +54,11 @@ export function LiveMatchPanel({ match, onEndMatch }: Props) {
       const teamName = pendingTeam === 'home' ? match.home_team.name : match.away_team.name;
       const actionName = pendingAction === 'goal' ? 'Gol' : pendingAction === 'assist' ? 'Asistencia' : pendingAction === 'yellow_card' ? 'Amarilla' : 'Roja';
       
-      setEventsLog(prev => [`${actionName} de ${player.full_name || player.name} (${teamName})`, ...prev]);
+      setEventsLog(prev => [{
+        id: Math.random().toString(36).substring(2, 9),
+        action: pendingAction,
+        text: `${actionName} de ${player.full_name || player.name} (${teamName})`
+      }, ...prev]);
 
       if (pendingAction === 'goal') {
         if (pendingTeam === 'home') setScore(s => ({ ...s, home: s.home + 1 }));
@@ -153,12 +157,28 @@ export function LiveMatchPanel({ match, onEndMatch }: Props) {
       </div>
 
       {/* Log de eventos */}
-      <div className="bg-slate-50 border-t border-slate-100 p-4 h-32 overflow-y-auto">
-        <h4 className="text-xs font-bold text-slate-400 uppercase mb-2 tracking-widest flex items-center gap-2"><Timer className="w-4 h-4"/> Eventos Recientes</h4>
-        <div className="space-y-1">
-          {eventsLog.length === 0 ? <p className="text-sm text-slate-400 italic">No hay eventos registrados.</p> : eventsLog.map((log, i) => (
-            <div key={i} className="text-sm text-slate-700 bg-white px-3 py-1.5 rounded border border-slate-100 shadow-sm">{log}</div>
-          ))}
+      <div className="bg-slate-50 border-t border-slate-100 p-4 h-64 overflow-y-auto">
+        <h4 className="text-xs font-bold text-slate-400 uppercase mb-3 tracking-widest flex items-center gap-2"><Timer className="w-4 h-4"/> Eventos Recientes</h4>
+        <div className="space-y-2">
+          {eventsLog.length === 0 ? <p className="text-sm text-slate-400 italic">No hay eventos registrados.</p> : eventsLog.map((log) => {
+            const getIcon = (action: string) => {
+              switch(action) {
+                case 'goal': return <Goal className="w-5 h-5 text-green-600" />;
+                case 'assist': return <Flag className="w-5 h-5 text-blue-600" />;
+                case 'yellow_card': return <Square className="w-5 h-5 fill-yellow-400 text-yellow-500" />;
+                case 'red_card': return <Square className="w-5 h-5 fill-red-500 text-red-600" />;
+                default: return <CheckCircle className="w-5 h-5 text-slate-400" />;
+              }
+            };
+            return (
+              <div key={log.id} className="text-sm text-slate-700 bg-white px-3 py-2 rounded-lg border border-slate-100 shadow-sm flex items-center gap-3">
+                <div className="bg-slate-50 p-2 rounded-lg">
+                  {getIcon(log.action)}
+                </div>
+                <span className="font-medium text-[15px]">{log.text}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
 
