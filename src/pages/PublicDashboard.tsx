@@ -347,7 +347,7 @@ export const PublicDashboard = () => {
             ) : recentMatches.map(match => (
               <div key={match.id} className={`bg-white rounded-xl p-4 border shadow-sm transition-colors ${match.status === 'pending' ? 'border-dashed border-slate-300 hover:border-sanatorio-blue' : 'border-slate-100 hover:border-sanatorio-pink'}`}>
                 <div className="text-center text-[10px] text-sanatorio-blue font-bold tracking-widest mb-3 bg-slate-50 py-1 rounded">
-                  {new Date(match.match_date).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', ' -').toUpperCase()}
+                  {new Date(match.match_date).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase()}
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="text-right flex-1 font-bold text-slate-800">{match.home_team?.name}</div>
@@ -389,7 +389,7 @@ export const PublicDashboard = () => {
             ) : upcomingMatches.map(match => (
               <div key={match.id} className="bg-slate-50 rounded-xl p-4 border border-dashed border-slate-300 hover:border-sanatorio-pink transition-colors">
                 <div className="text-center text-[10px] text-slate-500 font-bold tracking-widest mb-3 py-1 rounded bg-white shadow-sm inline-block px-3 mx-auto flex items-center justify-center w-fit">
-                  {new Date(match.match_date).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', ' -').toUpperCase()}
+                  {new Date(match.match_date).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase()}
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="text-right flex-1 font-bold text-slate-800">{match.home_team?.name}</div>

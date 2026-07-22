@@ -147,7 +147,7 @@ export const ProdeDashboard = () => {
                 <div className="flex-1 w-full space-y-4">
                   <div className="flex justify-between items-center px-4">
                     <span className="text-xs font-bold text-slate-400">
-                      {new Date(match.match_date).toLocaleString()}
+                      {new Date(match.match_date).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </span>
                     <div className="flex items-center gap-1 text-xs font-bold text-sanatorio-blue bg-blue-50 px-2 py-1 rounded-lg">
                       <BarChart3 className="w-3 h-3" />

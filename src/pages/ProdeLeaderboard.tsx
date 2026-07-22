@@ -24,19 +24,67 @@ export const ProdeLeaderboard = () => {
 
   const fetchLeaderboard = async () => {
     try {
-      const { data, error } = await supabase
+      // 1. Fetch all profiles
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select(`
           id,
           full_name,
           avatar_url,
-          total_points,
           team:teams(name, logo_url)
-        `)
-        .order('total_points', { ascending: false });
+        `);
 
-      if (error) throw error;
-      if (data) setProfiles(data as any);
+      if (profilesError) throw profilesError;
+
+      // 2. Fetch all completed matches
+      const { data: matchesData, error: matchesError } = await supabase
+        .from('matches')
+        .select('id, home_goals, away_goals')
+        .eq('status', 'completed');
+
+      if (matchesError) throw matchesError;
+
+      // 3. Fetch all predictions
+      const { data: predictionsData, error: predictionsError } = await supabase
+        .from('prode_predictions')
+        .select('user_id, match_id, home_goals, away_goals');
+
+      if (predictionsError) throw predictionsError;
+
+      // 4. Calculate points dynamically
+      const matchMap = new Map(matchesData?.map(m => [m.id, m]) || []);
+      const userPoints = new Map<string, number>();
+
+      if (predictionsData) {
+        predictionsData.forEach(pred => {
+          const match = matchMap.get(pred.match_id);
+          if (match) {
+            let points = 0;
+            // Exact match (3 pts)
+            if (pred.home_goals === match.home_goals && pred.away_goals === match.away_goals) {
+              points = 3;
+            } else {
+              // Check if guessed the winner or tie (1 pt)
+              const actualResult = match.home_goals > match.away_goals ? 'home' : (match.home_goals < match.away_goals ? 'away' : 'tie');
+              const predictedResult = pred.home_goals > pred.away_goals ? 'home' : (pred.home_goals < pred.away_goals ? 'away' : 'tie');
+              
+              if (actualResult === predictedResult) {
+                points = 1;
+              }
+            }
+            userPoints.set(pred.user_id, (userPoints.get(pred.user_id) || 0) + points);
+          }
+        });
+      }
+
+      // 5. Merge points into profiles and sort
+      const finalProfiles = (profilesData as any[]).map(p => ({
+        ...p,
+        total_points: userPoints.get(p.id) || 0
+      })).sort((a, b) => b.total_points - a.total_points);
+
+      setProfiles(finalProfiles);
+
     } catch (err) {
       console.error("Error fetching leaderboard", err);
     } finally {
