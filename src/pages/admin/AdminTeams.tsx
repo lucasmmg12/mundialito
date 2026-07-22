@@ -17,7 +17,7 @@ export const AdminTeams = () => {
   // Player Form State
   const [editingPlayer, setEditingPlayer] = useState<any | null>(null);
   const [isAddingPlayerToTeam, setIsAddingPlayerToTeam] = useState<string | null>(null);
-  const [playerForm, setPlayerForm] = useState({ full_name: '', dni: '', gender: 'M', shirt_number: '', nickname: '', goals: 0, assists: 0, mvp_awards: 0, yellow_cards: 0, red_cards: 0 });
+  const [playerForm, setPlayerForm] = useState({ full_name: '', dni: '', gender: 'M', jersey_number: '', nickname: '', goals: 0, assists: 0, mvp_awards: 0, yellow_cards: 0, red_cards: 0 });
   const [isSavingForm, setIsSavingForm] = useState(false);
 
   // Team CRUD State
@@ -92,7 +92,7 @@ export const AdminTeams = () => {
   };
 
   const openAddPlayer = (teamId: string) => {
-    setPlayerForm({ full_name: '', dni: '', gender: 'M', shirt_number: '', nickname: '', goals: 0, assists: 0, mvp_awards: 0, yellow_cards: 0, red_cards: 0 });
+    setPlayerForm({ full_name: '', dni: '', gender: 'M', jersey_number: '', nickname: '', goals: 0, assists: 0, mvp_awards: 0, yellow_cards: 0, red_cards: 0 });
     setIsAddingPlayerToTeam(teamId);
   };
 
@@ -101,7 +101,7 @@ export const AdminTeams = () => {
       full_name: player.full_name || '',
       dni: player.dni || '',
       gender: player.gender || 'M',
-      shirt_number: player.shirt_number || '',
+      jersey_number: player.jersey_number?.toString() || '',
       nickname: player.nickname || '',
       goals: player.goals || 0,
       assists: player.assists || 0,
@@ -121,12 +121,18 @@ export const AdminTeams = () => {
     if (!playerForm.full_name.trim()) return alert('El nombre completo es obligatorio.');
     setIsSavingForm(true);
     
+    // Convert jersey_number from string to integer for the DB
+    const payload = {
+      ...playerForm,
+      jersey_number: playerForm.jersey_number ? parseInt(playerForm.jersey_number, 10) : null,
+    };
+    
     if (editingPlayer) {
-      const { error } = await supabase.from('players').update(playerForm).eq('id', editingPlayer.id);
+      const { error } = await supabase.from('players').update(payload).eq('id', editingPlayer.id);
       if (error) alert('Error al actualizar: ' + error.message);
       else { closePlayerModal(); fetchTeams(); }
     } else if (isAddingPlayerToTeam) {
-      const { error } = await supabase.from('players').insert([{ ...playerForm, team_id: isAddingPlayerToTeam }]);
+      const { error } = await supabase.from('players').insert([{ ...payload, team_id: isAddingPlayerToTeam }]);
       if (error) alert('Error al guardar: ' + error.message);
       else { closePlayerModal(); fetchTeams(); }
     }
@@ -376,7 +382,7 @@ export const AdminTeams = () => {
                                         {player.gender === 'F' ? 'Fem' : 'Masc'}
                                       </span>
                                       <span>•</span>
-                                      <span>Dorsal: {player.shirt_number || '-'}</span>
+                                      <span>Dorsal: {player.jersey_number || '-'}</span>
                                       </div>
                                     </div>
                                   </div>
@@ -461,8 +467,8 @@ export const AdminTeams = () => {
                   <label className="block text-sm font-bold text-slate-700 mb-1">Dorsal</label>
                   <input 
                     type="text" 
-                    value={playerForm.shirt_number} 
-                    onChange={(e) => setPlayerForm({...playerForm, shirt_number: e.target.value})}
+                    value={playerForm.jersey_number} 
+                    onChange={(e) => setPlayerForm({...playerForm, jersey_number: e.target.value})}
                     className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sanatorio-pink outline-none"
                     placeholder="Ej: 10"
                   />
