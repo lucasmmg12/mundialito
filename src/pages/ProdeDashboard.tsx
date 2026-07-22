@@ -137,7 +137,9 @@ export const ProdeDashboard = () => {
           {matches.map(match => {
             const prob = calculateMatchProbability(match.home_team_id, match.away_team_id, allMatches);
             const pred = predictions[match.id] || { home: '', away: '' };
+            const isAdmin = user?.email === 'lmarinero@sanatorioargentino.com.ar';
             const isCompleted = match.status === 'completed';
+            const isInputDisabled = isCompleted && !isAdmin;
 
             return (
               <div key={match.id} className={`relative bg-white/90 backdrop-blur-sm p-6 rounded-3xl shadow-sm border ${isCompleted ? 'border-slate-200 opacity-80' : 'border-sanatorio-blue/20'} flex flex-col md:flex-row gap-6 items-center`}>
@@ -184,9 +186,9 @@ export const ProdeDashboard = () => {
                     min="0"
                     max="99"
                     value={pred.home}
-                    disabled={isCompleted}
+                    disabled={isInputDisabled}
                     onChange={(e) => handlePredictionChange(match.id, 'home', e.target.value)}
-                    className={`w-16 h-12 text-center text-xl font-bold bg-white border-2 rounded-xl outline-none ${isCompleted ? 'border-slate-100 text-slate-400 bg-slate-50' : 'border-slate-200 focus:border-sanatorio-pink focus:ring-0'}`}
+                    className={`w-16 h-12 text-center text-xl font-bold bg-white border-2 rounded-xl outline-none ${isInputDisabled ? 'border-slate-100 text-slate-400 bg-slate-50' : 'border-slate-200 focus:border-sanatorio-pink focus:ring-0'}`}
                     placeholder="-"
                   />
                   <span className="font-bold text-slate-400">-</span>
@@ -195,13 +197,13 @@ export const ProdeDashboard = () => {
                     min="0"
                     max="99"
                     value={pred.away}
-                    disabled={isCompleted}
+                    disabled={isInputDisabled}
                     onChange={(e) => handlePredictionChange(match.id, 'away', e.target.value)}
-                    className={`w-16 h-12 text-center text-xl font-bold bg-white border-2 rounded-xl outline-none ${isCompleted ? 'border-slate-100 text-slate-400 bg-slate-50' : 'border-slate-200 focus:border-sanatorio-pink focus:ring-0'}`}
+                    className={`w-16 h-12 text-center text-xl font-bold bg-white border-2 rounded-xl outline-none ${isInputDisabled ? 'border-slate-100 text-slate-400 bg-slate-50' : 'border-slate-200 focus:border-sanatorio-pink focus:ring-0'}`}
                     placeholder="-"
                   />
                   
-                  {!isCompleted && (
+                  {(!isCompleted || isAdmin) && (
                     <button
                       onClick={() => savePrediction(match.id)}
                       disabled={saving === match.id || (pred.home === '' || pred.away === '') || pred.saved}
@@ -219,7 +221,7 @@ export const ProdeDashboard = () => {
                       )}
                     </button>
                   )}
-                  {isCompleted && pred.saved && (
+                  {isInputDisabled && pred.saved && (
                     <div className="ml-2 flex items-center justify-center bg-slate-100 text-slate-400 p-3 rounded-xl">
                       <CheckCircle className="w-5 h-5" />
                     </div>
