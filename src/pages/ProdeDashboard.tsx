@@ -25,18 +25,16 @@ export const ProdeDashboard = () => {
 
   const fetchData = async () => {
     try {
-      // Fetch all matches for probability calculation
-      const { data: allM } = await supabase.from('matches').select('*').neq('status', 'pending');
-      if (allM) setAllMatches(allM);
-
-      // Fetch scheduled matches
-      const { data: scheduled } = await supabase
+      // Fetch all matches for display and probability
+      const { data: fetchedMatches } = await supabase
         .from('matches')
         .select('*, home_team:home_team_id(*), away_team:away_team_id(*)')
-        .eq('status', 'pending')
-        .order('match_date', { ascending: true });
+        .order('match_date', { ascending: false });
 
-      if (scheduled) setMatches(scheduled);
+      if (fetchedMatches) {
+        setAllMatches(fetchedMatches);
+        setMatches(fetchedMatches);
+      }
 
       // Fetch user's existing predictions
       if (user) {
@@ -139,10 +137,17 @@ export const ProdeDashboard = () => {
           {matches.map(match => {
             const prob = calculateMatchProbability(match.home_team_id, match.away_team_id, allMatches);
             const pred = predictions[match.id] || { home: '', away: '' };
+            const isCompleted = match.status === 'completed';
 
             return (
-              <div key={match.id} className="bg-white/90 backdrop-blur-sm p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col md:flex-row gap-6 items-center">
+              <div key={match.id} className={`relative bg-white/90 backdrop-blur-sm p-6 rounded-3xl shadow-sm border ${isCompleted ? 'border-slate-200 opacity-80' : 'border-sanatorio-blue/20'} flex flex-col md:flex-row gap-6 items-center`}>
                 
+                {isCompleted && (
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-800 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest shadow-sm">
+                    Finalizado (Real: {match.home_goals} - {match.away_goals})
+                  </div>
+                )}
+
                 {/* Info del Partido y Probabilidades */}
                 <div className="flex-1 w-full space-y-4">
                   <div className="flex justify-between items-center px-4">
@@ -179,8 +184,9 @@ export const ProdeDashboard = () => {
                     min="0"
                     max="99"
                     value={pred.home}
+                    disabled={isCompleted}
                     onChange={(e) => handlePredictionChange(match.id, 'home', e.target.value)}
-                    className="w-16 h-12 text-center text-xl font-bold bg-white border-2 border-slate-200 rounded-xl focus:border-sanatorio-pink focus:ring-0 outline-none"
+                    className={`w-16 h-12 text-center text-xl font-bold bg-white border-2 rounded-xl outline-none ${isCompleted ? 'border-slate-100 text-slate-400 bg-slate-50' : 'border-slate-200 focus:border-sanatorio-pink focus:ring-0'}`}
                     placeholder="-"
                   />
                   <span className="font-bold text-slate-400">-</span>
@@ -189,27 +195,35 @@ export const ProdeDashboard = () => {
                     min="0"
                     max="99"
                     value={pred.away}
+                    disabled={isCompleted}
                     onChange={(e) => handlePredictionChange(match.id, 'away', e.target.value)}
-                    className="w-16 h-12 text-center text-xl font-bold bg-white border-2 border-slate-200 rounded-xl focus:border-sanatorio-pink focus:ring-0 outline-none"
+                    className={`w-16 h-12 text-center text-xl font-bold bg-white border-2 rounded-xl outline-none ${isCompleted ? 'border-slate-100 text-slate-400 bg-slate-50' : 'border-slate-200 focus:border-sanatorio-pink focus:ring-0'}`}
                     placeholder="-"
                   />
                   
-                  <button
-                    onClick={() => savePrediction(match.id)}
-                    disabled={saving === match.id || (pred.home === '' || pred.away === '') || pred.saved}
-                    className={`ml-2 p-3 rounded-xl transition-all shadow-sm flex items-center justify-center
-                      ${pred.saved 
-                        ? 'bg-green-100 text-green-600 cursor-default' 
-                        : 'bg-sanatorio-blue text-white hover:bg-blue-800 disabled:opacity-50 disabled:bg-slate-300'}`}
-                  >
-                    {saving === match.id ? (
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : pred.saved ? (
+                  {!isCompleted && (
+                    <button
+                      onClick={() => savePrediction(match.id)}
+                      disabled={saving === match.id || (pred.home === '' || pred.away === '') || pred.saved}
+                      className={`ml-2 p-3 rounded-xl transition-all shadow-sm flex items-center justify-center
+                        ${pred.saved 
+                          ? 'bg-green-100 text-green-600 cursor-default' 
+                          : 'bg-sanatorio-blue text-white hover:bg-blue-800 disabled:opacity-50 disabled:bg-slate-300'}`}
+                    >
+                      {saving === match.id ? (
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : pred.saved ? (
+                        <CheckCircle className="w-5 h-5" />
+                      ) : (
+                        <span className="text-sm font-bold">Guardar</span>
+                      )}
+                    </button>
+                  )}
+                  {isCompleted && pred.saved && (
+                    <div className="ml-2 flex items-center justify-center bg-slate-100 text-slate-400 p-3 rounded-xl">
                       <CheckCircle className="w-5 h-5" />
-                    ) : (
-                      <span className="text-sm font-bold">Guardar</span>
-                    )}
-                  </button>
+                    </div>
+                  )}
                 </div>
               </div>
             );
