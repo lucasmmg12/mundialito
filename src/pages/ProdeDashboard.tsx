@@ -139,7 +139,8 @@ export const ProdeDashboard = () => {
             const pred = predictions[match.id] || { home: '', away: '' };
             const isAdmin = user?.email === 'lmarinero@sanatorioargentino.com.ar';
             const isCompleted = match.status === 'completed';
-            const isInputDisabled = isCompleted && !isAdmin;
+            const hasSavedPrediction = pred.saved === true;
+            const isInputDisabled = (match.status !== 'scheduled' && match.status !== 'pending' && !isAdmin) || (hasSavedPrediction && !isAdmin);
 
             return (
               <div key={match.id} className={`relative bg-white/90 backdrop-blur-sm p-6 rounded-3xl shadow-sm border ${isCompleted ? 'border-slate-200 opacity-80' : 'border-sanatorio-blue/20'} flex flex-col md:flex-row gap-6 items-center`}>
@@ -203,29 +204,24 @@ export const ProdeDashboard = () => {
                     placeholder="-"
                   />
                   
-                  {(!isCompleted || isAdmin) && (
+                  {hasSavedPrediction ? (
+                    <div className="ml-2 flex items-center justify-center bg-green-100 text-green-600 p-3 rounded-xl" title="Pronóstico guardado">
+                      <CheckCircle className="w-5 h-5" />
+                    </div>
+                  ) : (!isCompleted || isAdmin) && (
                     <button
                       onClick={() => savePrediction(match.id)}
-                      disabled={saving === match.id || (pred.home === '' || pred.away === '') || pred.saved}
-                      className={`ml-2 p-3 rounded-xl transition-all shadow-sm flex items-center justify-center
-                        ${pred.saved 
-                          ? 'bg-green-100 text-green-600 cursor-default' 
-                          : 'bg-sanatorio-blue text-white hover:bg-blue-800 disabled:opacity-50 disabled:bg-slate-300'}`}
+                      disabled={saving === match.id || (pred.home === '' || pred.away === '')}
+                      className="ml-2 p-3 rounded-xl transition-all shadow-sm flex items-center justify-center bg-sanatorio-blue text-white hover:bg-blue-800 disabled:opacity-50 disabled:bg-slate-300"
                     >
                       {saving === match.id ? (
                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : pred.saved ? (
-                        <CheckCircle className="w-5 h-5" />
                       ) : (
                         <span className="text-sm font-bold">Guardar</span>
                       )}
                     </button>
                   )}
-                  {isInputDisabled && pred.saved && (
-                    <div className="ml-2 flex items-center justify-center bg-slate-100 text-slate-400 p-3 rounded-xl">
-                      <CheckCircle className="w-5 h-5" />
-                    </div>
-                  )}
+
                 </div>
               </div>
             );

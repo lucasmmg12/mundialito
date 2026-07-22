@@ -30,6 +30,7 @@ export const AdminMatches = () => {
 
   // Inline edit state for pending fixtures
   const [pendingScores, setPendingScores] = useState<Record<string, { home: string, away: string }>>({});
+  const [savingMatchId, setSavingMatchId] = useState<string | null>(null);
   
   useEffect(() => {
     fetchData();
@@ -320,6 +321,7 @@ export const AdminMatches = () => {
       return alert("Debe ingresar los goles de ambos equipos.");
     }
 
+    setSavingMatchId(matchId);
     const { error } = await supabase.from('matches').update({
       home_goals: parseInt(scores.home),
       away_goals: parseInt(scores.away),
@@ -331,6 +333,7 @@ export const AdminMatches = () => {
     } else {
       fetchData();
     }
+    setSavingMatchId(null);
   };
 
   const handleStartLiveMatch = async (match: any) => {
@@ -484,10 +487,11 @@ export const AdminMatches = () => {
                     />
                     <button 
                       onClick={() => updateFixtureResult(match.id)}
-                      className="ml-2 bg-slate-200 text-slate-600 p-2 rounded-lg hover:bg-slate-300 transition-colors"
+                      disabled={savingMatchId === match.id}
+                      className="ml-2 bg-slate-200 text-slate-600 p-2 rounded-lg hover:bg-slate-300 transition-colors disabled:opacity-50"
                       title="Guardar Carga Rápida"
                     >
-                      <Save className="w-5 h-5" />
+                      {savingMatchId === match.id ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                     </button>
                   </div>
 
