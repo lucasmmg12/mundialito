@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Activity, Plus, Save, ArrowLeft, RefreshCw, CheckCircle, Clock, PlayCircle, Lock } from 'lucide-react';
+import { Activity, Plus, Save, ArrowLeft, RefreshCw, CheckCircle, Clock, PlayCircle, Lock, Trophy } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LiveMatchPanel } from '../../components/LiveMatchPanel';
 import { startMatch } from '../../lib/mundialito-service';
