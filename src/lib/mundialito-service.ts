@@ -14,6 +14,7 @@ export interface Match {
   away_team_id: string;
   home_goals: number;
   away_goals: number;
+  notes?: string;
 }
 
 export interface EventPost {
