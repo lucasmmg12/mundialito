@@ -22,6 +22,7 @@ export const AdminMatches = () => {
   const [homeGoals, setHomeGoals] = useState('0');
   const [awayGoals, setAwayGoals] = useState('0');
   const [matchDate, setMatchDate] = useState('');
+  const [matchNotes, setMatchNotes] = useState('');
 
   // Inline edit state for pending fixtures
   const [pendingScores, setPendingScores] = useState<Record<string, { home: string, away: string }>>({});
@@ -93,7 +94,8 @@ export const AdminMatches = () => {
         home_goals: parseInt(homeGoals),
         away_goals: parseInt(awayGoals),
         match_date: new Date(matchDate).toISOString(),
-        status: 'completed'
+        status: 'completed',
+        notes: matchNotes || null
       }]);
 
     if (error) {
@@ -139,7 +141,8 @@ export const AdminMatches = () => {
             home_goals: 0, // default
             away_goals: 0, // default
             status: 'pending',
-            match_date: date.toISOString()
+            match_date: date.toISOString(),
+            notes: 'Fase de Grupos'
           });
         }
       }
@@ -157,6 +160,89 @@ export const AdminMatches = () => {
     }
     
     setGenerating(false);
+  };
+
+  const generateSemifinals = async () => {
+    const completed = matches.filter(m => m.status === 'completed');
+    
+    const calculateStandings = (groupName: string) => {
+      const standings: Record<string, { id: string, name: string, points: number, goalDiff: number }> = {};
+      completed.filter(m => m.notes === groupName).forEach(m => {
+        if (!standings[m.home_team_id]) standings[m.home_team_id] = { id: m.home_team_id, name: m.home_team?.name, points: 0, goalDiff: 0 };
+        if (!standings[m.away_team_id]) standings[m.away_team_id] = { id: m.away_team_id, name: m.away_team?.name, points: 0, goalDiff: 0 };
+        
+        const hG = m.home_goals || 0;
+        const aG = m.away_goals || 0;
+        standings[m.home_team_id].goalDiff += (hG - aG);
+        standings[m.away_team_id].goalDiff += (aG - hG);
+        
+        if (hG > aG) standings[m.home_team_id].points += 3;
+        else if (hG < aG) standings[m.away_team_id].points += 3;
+        else {
+          standings[m.home_team_id].points += 1;
+          standings[m.away_team_id].points += 1;
+        }
+      });
+      return Object.values(standings).sort((a, b) => b.points - a.points || b.goalDiff - a.goalDiff);
+    };
+
+    const groupA = calculateStandings('Grupo A');
+    const groupB = calculateStandings('Grupo B');
+
+    if (groupA.length < 2 || groupB.length < 2) {
+      alert("No hay suficientes partidos completados o equipos en los grupos para armar las semifinales.");
+      return;
+    }
+
+    const firstA = groupA[0];
+    const secondA = groupA[1];
+    const firstB = groupB[0];
+    const secondB = groupB[1];
+
+    if (!window.confirm(`Se generarán las siguientes semifinales:\n1. ${firstA.name} (1ºA) vs ${secondB.name} (2ºB)\n2. ${firstB.name} (1ºB) vs ${secondA.name} (2ºA)\n\n¿Estás de acuerdo? (Luego podrás eliminarlas y cargarlas manualmente si necesitas editarlas)`)) {
+      return;
+    }
+
+    setGenerating(true);
+    let date = new Date();
+    date.setDate(date.getDate() + 2);
+    date.setHours(10, 0, 0, 0);
+
+    const semis = [
+      {
+        home_team_id: firstA.id,
+        away_team_id: secondB.id,
+        status: 'pending',
+        match_date: date.toISOString(),
+        notes: 'Semifinal 1'
+      },
+      {
+        home_team_id: firstB.id,
+        away_team_id: secondA.id,
+        status: 'pending',
+        match_date: date.toISOString(),
+        notes: 'Semifinal 2'
+      }
+    ];
+
+    const { error } = await supabase.from('matches').insert(semis);
+    if (error) {
+      alert("Error generando semifinales: " + error.message);
+    } else {
+      alert("Semifinales creadas con éxito.");
+      fetchData();
+    }
+    setGenerating(false);
+  };
+
+  const deleteMatch = async (matchId: string) => {
+    if (!window.confirm("¿Estás seguro de eliminar este partido? Esta acción no se puede deshacer.")) return;
+    const { error } = await supabase.from('matches').delete().eq('id', matchId);
+    if (error) {
+      alert("Error al eliminar: " + error.message);
+    } else {
+      fetchData();
+    }
   };
 
   const updateFixtureResult = async (matchId: string) => {
@@ -219,14 +305,24 @@ export const AdminMatches = () => {
         <h2 className="text-3xl font-condensed font-bold text-sanatorio-blue flex items-center gap-3">
           <Activity className="text-sanatorio-pink" /> Gestión de Fixture
         </h2>
-        <button 
-          onClick={handleGenerateClick}
-          disabled={generating}
-          className="bg-sanatorio-pink text-white font-bold px-6 py-2.5 rounded-xl shadow-md hover:bg-pink-600 transition-colors flex items-center gap-2 disabled:opacity-50"
-        >
-          <RefreshCw className={`w-5 h-5 ${generating ? 'animate-spin' : ''}`} />
-          {generating ? 'Generando...' : 'Generar Fixture Automático'}
-        </button>
+        <div className="flex gap-2 w-full md:w-auto">
+          <button 
+            onClick={generateSemifinals}
+            disabled={generating}
+            className="flex-1 md:flex-none bg-purple-600 text-white font-bold px-4 py-2.5 rounded-xl shadow-md hover:bg-purple-700 transition-colors flex items-center gap-2 justify-center disabled:opacity-50"
+          >
+            <Trophy className="w-5 h-5" />
+            Generar Semis
+          </button>
+          <button 
+            onClick={handleGenerateClick}
+            disabled={generating}
+            className="flex-1 md:flex-none bg-sanatorio-pink text-white font-bold px-4 py-2.5 rounded-xl shadow-md hover:bg-pink-600 transition-colors flex items-center gap-2 justify-center disabled:opacity-50"
+          >
+            <RefreshCw className={`w-5 h-5 ${generating ? 'animate-spin' : ''}`} />
+            {generating ? 'Generando...' : 'Generar Fixture'}
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -284,12 +380,21 @@ export const AdminMatches = () => {
 
                   <div className="flex-1 text-center md:text-left font-bold text-slate-700">{match.away_team?.name}</div>
                   
-                  <button 
-                    onClick={() => handleStartLiveMatch(match)}
-                    className="md:absolute md:right-4 mt-4 md:mt-0 bg-sanatorio-blue text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 justify-center shadow-sm hover:bg-blue-800 transition-colors"
-                  >
-                    <PlayCircle className="w-4 h-4" /> COMENZAR
-                  </button>
+                  <div className="flex flex-col md:flex-row gap-2 mt-4 md:mt-0 md:absolute md:right-4">
+                    <button 
+                      onClick={() => handleStartLiveMatch(match)}
+                      className="bg-sanatorio-blue text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 justify-center shadow-sm hover:bg-blue-800 transition-colors"
+                    >
+                      <PlayCircle className="w-4 h-4" /> COMENZAR
+                    </button>
+                    <button 
+                      onClick={() => deleteMatch(match.id)}
+                      className="bg-white text-red-500 border border-red-200 px-3 py-2 rounded-lg font-bold text-sm flex items-center justify-center shadow-sm hover:bg-red-50 transition-colors"
+                      title="Eliminar Partido"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
                 </div>
               ))}
               {pendingMatches.length === 0 && <p className="text-center text-slate-500 py-4">No hay partidos pendientes en el fixture.</p>}
@@ -356,6 +461,11 @@ export const AdminMatches = () => {
                 <label className="block text-sm font-semibold text-slate-700 mb-1">Goles</label>
                 <input type="number" min="0" required value={awayGoals} onChange={e => setAwayGoals(e.target.value)} className="w-full p-2 rounded-lg border border-slate-200 text-center font-bold text-xl" />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Fase / Notas (Ej: Semifinal)</label>
+              <input type="text" value={matchNotes} onChange={e => setMatchNotes(e.target.value)} placeholder="Opcional" className="w-full p-2 rounded-lg border border-slate-200 focus:border-sanatorio-blue" />
             </div>
 
             <button type="submit" className="w-full mt-6 bg-slate-800 text-white font-bold py-3 rounded-xl shadow-md hover:bg-slate-900 transition-colors flex justify-center items-center gap-2">
