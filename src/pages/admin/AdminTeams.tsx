@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { uploadPlayerPhoto, updatePlayerPhotoUrl } from '../../lib/mundialito-service';
-import { Users, CheckCircle, XCircle, Clock, ArrowLeft, ChevronDown, ChevronUp, Save, User, Plus, Edit2, Trash2, X, Link as LinkIcon, Camera, Loader2, Lock } from 'lucide-react';
+import { Users, CheckCircle, XCircle, Clock, ArrowLeft, ChevronDown, ChevronUp, Save, User, Plus, Edit2, Trash2, X, Link as LinkIcon, Camera, Loader2, Lock, Trophy } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -17,7 +17,7 @@ export const AdminTeams = () => {
   // Player Form State
   const [editingPlayer, setEditingPlayer] = useState<any | null>(null);
   const [isAddingPlayerToTeam, setIsAddingPlayerToTeam] = useState<string | null>(null);
-  const [playerForm, setPlayerForm] = useState({ full_name: '', dni: '', gender: 'M', shirt_number: '', nickname: '' });
+  const [playerForm, setPlayerForm] = useState({ full_name: '', dni: '', gender: 'M', shirt_number: '', nickname: '', goals: 0, assists: 0, mvp_awards: 0, yellow_cards: 0, red_cards: 0 });
   const [isSavingForm, setIsSavingForm] = useState(false);
 
   // Team CRUD State
@@ -92,7 +92,7 @@ export const AdminTeams = () => {
   };
 
   const openAddPlayer = (teamId: string) => {
-    setPlayerForm({ full_name: '', dni: '', gender: 'M', shirt_number: '', nickname: '' });
+    setPlayerForm({ full_name: '', dni: '', gender: 'M', shirt_number: '', nickname: '', goals: 0, assists: 0, mvp_awards: 0, yellow_cards: 0, red_cards: 0 });
     setIsAddingPlayerToTeam(teamId);
   };
 
@@ -102,7 +102,12 @@ export const AdminTeams = () => {
       dni: player.dni || '',
       gender: player.gender || 'M',
       shirt_number: player.shirt_number || '',
-      nickname: player.nickname || ''
+      nickname: player.nickname || '',
+      goals: player.goals || 0,
+      assists: player.assists || 0,
+      mvp_awards: player.mvp_awards || 0,
+      yellow_cards: player.yellow_cards || 0,
+      red_cards: player.red_cards || 0
     });
     setEditingPlayer(player);
   };
@@ -485,6 +490,33 @@ export const AdminTeams = () => {
                   />
                 </div>
               </div>
+              {editingPlayer && (
+                <div className="bg-slate-100 p-4 rounded-xl border border-slate-200">
+                  <h4 className="font-bold text-slate-700 mb-3 text-sm flex items-center gap-2"><Trophy className="w-4 h-4 text-sanatorio-blue" /> Editar Estadísticas (Carga Rápida)</h4>
+                  <div className="grid grid-cols-5 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase text-center mb-1">Goles</label>
+                      <input type="number" min="0" value={playerForm.goals} onChange={(e) => setPlayerForm({...playerForm, goals: parseInt(e.target.value) || 0})} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-sanatorio-blue outline-none text-center font-bold" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase text-center mb-1">Asist.</label>
+                      <input type="number" min="0" value={playerForm.assists} onChange={(e) => setPlayerForm({...playerForm, assists: parseInt(e.target.value) || 0})} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-sanatorio-blue outline-none text-center font-bold" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase text-center mb-1">MVP</label>
+                      <input type="number" min="0" value={playerForm.mvp_awards} onChange={(e) => setPlayerForm({...playerForm, mvp_awards: parseInt(e.target.value) || 0})} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-sanatorio-blue outline-none text-center font-bold" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase text-center mb-1">Amarillas</label>
+                      <input type="number" min="0" value={playerForm.yellow_cards} onChange={(e) => setPlayerForm({...playerForm, yellow_cards: parseInt(e.target.value) || 0})} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-yellow-400 outline-none text-center font-bold" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase text-center mb-1">Rojas</label>
+                      <input type="number" min="0" value={playerForm.red_cards} onChange={(e) => setPlayerForm({...playerForm, red_cards: parseInt(e.target.value) || 0})} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-center font-bold" />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
             
             <div className="p-5 border-t border-slate-100 flex justify-end gap-3 bg-slate-50">

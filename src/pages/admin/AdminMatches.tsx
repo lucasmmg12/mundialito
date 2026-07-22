@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Activity, Plus, Save, ArrowLeft, RefreshCw, CheckCircle, Clock, PlayCircle, Lock, Trophy } from 'lucide-react';
+import { Activity, Plus, Save, ArrowLeft, RefreshCw, CheckCircle, Clock, PlayCircle, Lock, Trophy, Star } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LiveMatchPanel } from '../../components/LiveMatchPanel';
 import { startMatch } from '../../lib/mundialito-service';
@@ -16,6 +16,8 @@ export const AdminMatches = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showSemisModal, setShowSemisModal] = useState(false);
   const [semisProjection, setSemisProjection] = useState<any>(null);
+  const [showFinalModal, setShowFinalModal] = useState(false);
+  const [finalProjection, setFinalProjection] = useState<any>(null);
   const [activeLiveMatch, setActiveLiveMatch] = useState<any | null>(null);
 
   // Form state for single manual match
@@ -256,6 +258,52 @@ export const AdminMatches = () => {
     setGenerating(false);
   };
 
+  const generateFinal = () => {
+    const semi1 = matches.find(m => m.notes === 'Semifinal 1' && m.status === 'completed');
+    const semi2 = matches.find(m => m.notes === 'Semifinal 2' && m.status === 'completed');
+
+    if (!semi1 || !semi2) {
+      alert("Deben jugarse y completarse ambas semifinales primero.");
+      return;
+    }
+
+    const winner1 = semi1.home_goals > semi1.away_goals ? { id: semi1.home_team_id, name: semi1.home_team?.name } : (semi1.away_goals > semi1.home_goals ? { id: semi1.away_team_id, name: semi1.away_team?.name } : null);
+    const winner2 = semi2.home_goals > semi2.away_goals ? { id: semi2.home_team_id, name: semi2.home_team?.name } : (semi2.away_goals > semi2.home_goals ? { id: semi2.away_team_id, name: semi2.away_team?.name } : null);
+
+    if (!winner1 || !winner2) {
+      alert("Hay un empate en alguna semifinal. Ajusta los goles para definir un ganador antes de generar la final.");
+      return;
+    }
+
+    setFinalProjection({ team1: winner1, team2: winner2 });
+    setShowFinalModal(true);
+  };
+
+  const confirmGenerateFinal = async () => {
+    setShowFinalModal(false);
+    setGenerating(true);
+    
+    let date = new Date();
+    date.setDate(date.getDate() + 1);
+    date.setHours(10, 0, 0, 0);
+
+    const { error } = await supabase.from('matches').insert([{
+      home_team_id: finalProjection.team1.id,
+      away_team_id: finalProjection.team2.id,
+      status: 'pending',
+      match_date: date.toISOString(),
+      notes: 'Final'
+    }]);
+
+    if (error) {
+      alert("Error generando final: " + error.message);
+    } else {
+      alert("Final creada con éxito.");
+      fetchData();
+    }
+    setGenerating(false);
+  };
+
   const deleteMatch = async (matchId: string) => {
     if (!window.confirm("¿Estás seguro de eliminar este partido? Esta acción no se puede deshacer.")) return;
     const { error } = await supabase.from('matches').delete().eq('id', matchId);
@@ -327,6 +375,14 @@ export const AdminMatches = () => {
           <Activity className="text-sanatorio-pink" /> Gestión de Fixture
         </h2>
         <div className="flex gap-2 w-full md:w-auto">
+          <button 
+            onClick={generateFinal}
+            disabled={generating}
+            className="flex-1 md:flex-none bg-yellow-500 text-white font-bold px-4 py-2.5 rounded-xl shadow-md hover:bg-yellow-600 transition-colors flex items-center gap-2 justify-center disabled:opacity-50"
+          >
+            <Star className="w-5 h-5" />
+            Generar Final
+          </button>
           <button 
             onClick={generateSemifinals}
             disabled={generating}
@@ -596,6 +652,46 @@ export const AdminMatches = () => {
                   className="px-4 py-2 font-bold text-white bg-purple-600 rounded-lg hover:bg-purple-700 shadow-md transition-colors"
                 >
                   Aceptar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showFinalModal && finalProjection && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="bg-yellow-500 text-white px-6 py-4">
+              <h3 className="font-condensed font-bold text-xl uppercase tracking-wider flex items-center gap-2">
+                <Star className="w-5 h-5 text-yellow-100" />
+                Confirmar Final
+              </h3>
+            </div>
+            <div className="p-6">
+              <p className="text-slate-600 font-medium mb-4">
+                Se generará el partido de la Gran Final:
+              </p>
+              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-xl border border-yellow-200 text-center mb-6 shadow-sm">
+                <p className="font-bold text-slate-800 text-xl">{finalProjection.team1.name}</p>
+                <p className="text-yellow-600 font-black my-2">VS</p>
+                <p className="font-bold text-slate-800 text-xl">{finalProjection.team2.name}</p>
+              </div>
+              <p className="text-sm text-slate-500 italic mb-6">
+                ¿Estás de acuerdo?
+              </p>
+              <div className="flex justify-end gap-3">
+                <button 
+                  onClick={() => setShowFinalModal(false)}
+                  className="px-4 py-2 font-bold text-slate-500 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={confirmGenerateFinal}
+                  className="px-4 py-2 font-bold text-white bg-yellow-500 rounded-lg hover:bg-yellow-600 shadow-md transition-colors"
+                >
+                  Generar Partido
                 </button>
               </div>
             </div>
