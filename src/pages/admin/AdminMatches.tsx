@@ -64,6 +64,32 @@ export const AdminMatches = () => {
     setLoading(false);
   };
 
+  const calculateStandings = (groupName: string) => {
+    const standings: Record<string, { id: string, name: string, points: number, goalDiff: number, played: number }> = {};
+    matches.filter(m => m.notes === groupName).forEach(m => {
+      if (!standings[m.home_team_id]) standings[m.home_team_id] = { id: m.home_team_id, name: m.home_team?.name, points: 0, goalDiff: 0, played: 0 };
+      if (!standings[m.away_team_id]) standings[m.away_team_id] = { id: m.away_team_id, name: m.away_team?.name, points: 0, goalDiff: 0, played: 0 };
+      
+      if (m.status === 'completed') {
+        standings[m.home_team_id].played += 1;
+        standings[m.away_team_id].played += 1;
+        
+        const hG = m.home_goals || 0;
+        const aG = m.away_goals || 0;
+        standings[m.home_team_id].goalDiff += (hG - aG);
+        standings[m.away_team_id].goalDiff += (aG - hG);
+        
+        if (hG > aG) standings[m.home_team_id].points += 3;
+        else if (hG < aG) standings[m.away_team_id].points += 3;
+        else {
+          standings[m.home_team_id].points += 1;
+          standings[m.away_team_id].points += 1;
+        }
+      }
+    });
+    return Object.values(standings).sort((a, b) => b.points - a.points || b.goalDiff - a.goalDiff);
+  };
+
   if (!session || session.user.email !== 'lmarinero@sanatorioargentino.com.ar') {
     return (
       <div className="max-w-md mx-auto bg-white p-8 rounded-3xl shadow-xl text-center mt-20 border border-slate-100">
@@ -120,35 +146,48 @@ export const AdminMatches = () => {
     setGenerating(true);
     let newMatches = [];
     
-    // Algoritmo Round Robin simple (Todos vs Todos)
-    for (let i = 0; i < teams.length; i++) {
-      for (let j = i + 1; j < teams.length; j++) {
-        // Verificar si este encuentro ya existe (en cualquier orden)
-        const exists = matches.some(m => 
-          (m.home_team_id === teams[i].id && m.away_team_id === teams[j].id) ||
-          (m.home_team_id === teams[j].id && m.away_team_id === teams[i].id)
-        );
-        
-        if (!exists) {
-          // Programar fecha ficticia para mañana a las 10am (el admin la puede cambiar luego o ignorarla)
-          let date = new Date();
-          date.setDate(date.getDate() + 1);
-          date.setHours(10, 0, 0, 0);
-          
-          newMatches.push({
-            home_team_id: teams[i].id,
-            away_team_id: teams[j].id,
-            home_goals: 0, // default
-            away_goals: 0, // default
-            status: 'pending',
-            match_date: date.toISOString(),
-            notes: 'Fase de Grupos'
-          });
-        }
+    // Mezclar equipos aleatoriamente
+    const shuffledTeams = [...teams].sort(() => Math.random() - 0.5);
+    
+    // Dividir en 2 grupos (Mitad y mitad, o 4 y 5 si son 9)
+    const mid = Math.floor(shuffledTeams.length / 2);
+    const groupA = shuffledTeams.slice(0, mid);
+    const groupB = shuffledTeams.slice(mid);
+    
+    let date = new Date();
+    date.setDate(date.getDate() + 1);
+    date.setHours(10, 0, 0, 0);
+
+    for (let i = 0; i < groupA.length; i++) {
+      for (let j = i + 1; j < groupA.length; j++) {
+        newMatches.push({
+          home_team_id: groupA[i].id,
+          away_team_id: groupA[j].id,
+          home_goals: 0,
+          away_goals: 0,
+          status: 'pending',
+          match_date: date.toISOString(),
+          notes: 'Grupo A'
+        });
+      }
+    }
+    
+    for (let i = 0; i < groupB.length; i++) {
+      for (let j = i + 1; j < groupB.length; j++) {
+        newMatches.push({
+          home_team_id: groupB[i].id,
+          away_team_id: groupB[j].id,
+          home_goals: 0,
+          away_goals: 0,
+          status: 'pending',
+          match_date: date.toISOString(),
+          notes: 'Grupo B'
+        });
       }
     }
     
     if (newMatches.length > 0) {
+      await supabase.from('matches').delete().neq('id', '00000000-0000-0000-0000-000000000000');
       const { error } = await supabase.from('matches').insert(newMatches);
       if (error) {
         alert("Error al generar fixture: " + error.message);
@@ -156,35 +195,13 @@ export const AdminMatches = () => {
         fetchData();
       }
     } else {
-      alert("El fixture ya está completo. Todos los equipos aprobados ya tienen partidos programados entre sí.");
+      alert("No hay equipos suficientes.");
     }
     
     setGenerating(false);
   };
 
   const generateSemifinals = async () => {
-    const completed = matches.filter(m => m.status === 'completed');
-    
-    const calculateStandings = (groupName: string) => {
-      const standings: Record<string, { id: string, name: string, points: number, goalDiff: number }> = {};
-      completed.filter(m => m.notes === groupName).forEach(m => {
-        if (!standings[m.home_team_id]) standings[m.home_team_id] = { id: m.home_team_id, name: m.home_team?.name, points: 0, goalDiff: 0 };
-        if (!standings[m.away_team_id]) standings[m.away_team_id] = { id: m.away_team_id, name: m.away_team?.name, points: 0, goalDiff: 0 };
-        
-        const hG = m.home_goals || 0;
-        const aG = m.away_goals || 0;
-        standings[m.home_team_id].goalDiff += (hG - aG);
-        standings[m.away_team_id].goalDiff += (aG - hG);
-        
-        if (hG > aG) standings[m.home_team_id].points += 3;
-        else if (hG < aG) standings[m.away_team_id].points += 3;
-        else {
-          standings[m.home_team_id].points += 1;
-          standings[m.away_team_id].points += 1;
-        }
-      });
-      return Object.values(standings).sort((a, b) => b.points - a.points || b.goalDiff - a.goalDiff);
-    };
 
     const groupA = calculateStandings('Grupo A');
     const groupB = calculateStandings('Grupo B');
@@ -328,6 +345,42 @@ export const AdminMatches = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Historial y Fixture */}
         <div className="lg:col-span-2 space-y-6">
+
+          {/* Estadísticas de Grupos */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[
+              { name: 'Grupo A', data: calculateStandings('Grupo A') },
+              { name: 'Grupo B', data: calculateStandings('Grupo B') }
+            ].map(group => group.data.length > 0 && (
+              <div key={group.name} className="bg-white/95 backdrop-blur-sm p-6 rounded-2xl shadow-sm border border-slate-100">
+                <h3 className="font-bold text-xl text-slate-800 mb-4 flex items-center gap-2">
+                  <Trophy className="text-yellow-500 w-5 h-5" /> Posiciones {group.name}
+                </h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-sm">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-200">
+                        <th className="py-2 px-3 font-bold text-slate-500">Equipo</th>
+                        <th className="py-2 px-3 font-bold text-slate-500 text-center">PJ</th>
+                        <th className="py-2 px-3 font-bold text-slate-500 text-center">DIF</th>
+                        <th className="py-2 px-3 font-bold text-sanatorio-blue text-center">PTS</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {group.data.map((team, index) => (
+                        <tr key={team.id} className={`border-b border-slate-100 ${index < 2 ? 'bg-green-50/50' : ''}`}>
+                          <td className="py-2 px-3 font-bold text-slate-700">{team.name}</td>
+                          <td className="py-2 px-3 text-center text-slate-600">{team.played}</td>
+                          <td className="py-2 px-3 text-center text-slate-600">{team.goalDiff > 0 ? `+${team.goalDiff}` : team.goalDiff}</td>
+                          <td className="py-2 px-3 text-center font-bold text-sanatorio-blue">{team.points}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
+          </div>
           
           {/* Partidos Pendientes (Fixture) */}
           <div className="bg-white/95 backdrop-blur-sm p-6 rounded-2xl shadow-sm border border-slate-100">
@@ -486,7 +539,7 @@ export const AdminMatches = () => {
             </div>
             <div className="p-6">
               <p className="text-slate-600 font-medium mb-6">
-                ¿Estás seguro de generar el Fixture Automático? Se cruzarán todos los equipos <strong>Aprobados</strong> (Todos vs Todos). Los partidos aparecerán como "Pendientes" hasta que cargues su resultado.
+                ¿Estás seguro de generar el Fixture Automático? Se borrarán todos los partidos existentes y se generarán dos grupos aleatorios (A y B) con sus respectivos cruces.
               </p>
               <div className="flex justify-end gap-3">
                 <button 

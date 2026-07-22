@@ -6,7 +6,8 @@ import { Onboarding } from '../components/Onboarding';
 import { GuidedTour } from '../components/GuidedTour';
 
 export const PublicDashboard = () => {
-  const [standings, setStandings] = useState<any[]>([]);
+  const [groupAStandings, setGroupAStandings] = useState<any[]>([]);
+  const [groupBStandings, setGroupBStandings] = useState<any[]>([]);
   const [recentMatches, setRecentMatches] = useState<any[]>([]);
   const [upcomingMatches, setUpcomingMatches] = useState<any[]>([]);
   const [stats, setStats] = useState<any>({ topScorer: null, topAssists: null, topMVP: null });
@@ -54,33 +55,49 @@ export const PublicDashboard = () => {
 
       // Calculate Standings
       if (teamsData && matchesData) {
-        let table = teamsData.map(t => ({ id: t.id, team: t.name, pts: 0, pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, form: [] as string[] }));
-        
-        matchesData.forEach((m: any) => {
-          if (m.status !== 'completed') return; // Skip pending matches for standings
-          let home = table.find(t => t.id === m.home_team_id);
-          let away = table.find(t => t.id === m.away_team_id);
-          if (!home || !away) return;
+        const createGroupTable = (groupNotes: string) => {
+          const groupTeams = new Set<string>();
+          matchesData.forEach((m: any) => {
+            if (m.notes === groupNotes) {
+              groupTeams.add(m.home_team_id);
+              groupTeams.add(m.away_team_id);
+            }
+          });
 
-          home.pj++; away.pj++;
-          home.gf += m.home_goals; home.gc += m.away_goals;
-          away.gf += m.away_goals; away.gc += m.home_goals;
+          let table = Array.from(groupTeams).map(teamId => {
+             const t = teamsData.find((t: any) => t.id === teamId);
+             return { id: teamId, team: t?.name || '?', pts: 0, pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, form: [] as string[] };
+          });
+          
+          matchesData.forEach((m: any) => {
+            if (m.notes !== groupNotes || m.status !== 'completed') return;
+            let home = table.find(t => t.id === m.home_team_id);
+            let away = table.find(t => t.id === m.away_team_id);
+            if (!home || !away) return;
 
-          if (m.home_goals > m.away_goals) {
-            home.pg++; home.pts += 3; home.form.unshift('W');
-            away.pp++; away.form.unshift('L');
-          } else if (m.home_goals < m.away_goals) {
-            away.pg++; away.pts += 3; away.form.unshift('W');
-            home.pp++; home.form.unshift('L');
-          } else {
-            home.pe++; away.pe++;
-            home.pts += 1; away.pts += 1;
-            home.form.unshift('D'); away.form.unshift('D');
-          }
-        });
+            home.pj++; away.pj++;
+            home.gf += m.home_goals; home.gc += m.away_goals;
+            away.gf += m.away_goals; away.gc += m.home_goals;
 
-        table.sort((a, b) => b.pts - a.pts || (b.gf - b.gc) - (a.gf - a.gc));
-        setStandings(table);
+            if (m.home_goals > m.away_goals) {
+              home.pg++; home.pts += 3; home.form.unshift('W');
+              away.pp++; away.form.unshift('L');
+            } else if (m.home_goals < m.away_goals) {
+              away.pg++; away.pts += 3; away.form.unshift('W');
+              home.pp++; home.form.unshift('L');
+            } else {
+              home.pe++; away.pe++;
+              home.pts += 1; away.pts += 1;
+              home.form.unshift('D'); away.form.unshift('D');
+            }
+          });
+
+          table.sort((a, b) => b.pts - a.pts || (b.gf - b.gc) - (a.gf - a.gc));
+          return table;
+        };
+
+        setGroupAStandings(createGroupTable('Grupo A'));
+        setGroupBStandings(createGroupTable('Grupo B'));
       }
 
       // 3. Fetch Top Stats (Top 5 for rankings)
@@ -188,70 +205,130 @@ export const PublicDashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* STANDINGS TABLE */}
-        <div className="tour-standings lg:col-span-2 order-2 lg:order-1 bg-white/95 backdrop-blur-sm rounded-3xl shadow-lg border-2 border-slate-100 overflow-hidden">
-          <div className="px-8 py-6 border-b-4 border-sanatorio-pink flex justify-between items-center bg-gradient-to-r from-slate-50 to-white">
-            <h2 className="text-2xl font-condensed font-bold text-sanatorio-blue flex items-center gap-3 uppercase tracking-wide">
-              <Trophy className="text-sanatorio-pink w-6 h-6" /> Tabla de Posiciones
-            </h2>
-          </div>
+        {/* STANDINGS TABLES */}
+        <div className="tour-standings lg:col-span-2 order-2 lg:order-1 flex flex-col gap-8">
           
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold">
-                  <th className="p-4 text-center w-12">Pos</th>
-                  <th className="p-4">Equipo</th>
-                  <th className="p-4 text-center">Pts</th>
-                  <th className="p-4 text-center hidden sm:table-cell">PJ</th>
-                  <th className="p-4 text-center hidden md:table-cell">G</th>
-                  <th className="p-4 text-center hidden md:table-cell">E</th>
-                  <th className="p-4 text-center hidden md:table-cell">P</th>
-                  <th className="p-4 text-center hidden sm:table-cell">GF</th>
-                  <th className="p-4 text-center hidden sm:table-cell">GC</th>
-                  <th className="p-4 text-center">DIF</th>
-                  <th className="p-4 text-center">Forma</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr><td colSpan={10} className="p-8 text-center text-slate-500 font-bold">Cargando posiciones...</td></tr>
-                ) : standings.map((team, idx) => (
-                  <tr key={team.id} className="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
-                    <td className="p-4 text-center">
-                      <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full font-bold shadow-sm ${
-                        idx === 0 ? 'bg-sanatorio-pink text-white scale-110' : 
-                        idx === 1 ? 'bg-sanatorio-blue text-white' : 
-                        idx === 2 ? 'bg-sanatorio-blue/70 text-white' : 'text-slate-500 bg-slate-100'
-                      }`}>
-                        {idx + 1}
-                      </span>
-                    </td>
-                    <td className="p-4 font-bold text-slate-800 text-base">{team.team}</td>
-                    <td className="p-4 text-center font-black text-sanatorio-pink text-xl">{team.pts}</td>
-                    <td className="p-4 text-center hidden sm:table-cell text-slate-600">{team.pj}</td>
-                    <td className="p-4 text-center hidden md:table-cell text-green-600">{team.pg}</td>
-                    <td className="p-4 text-center hidden md:table-cell text-slate-500">{team.pe}</td>
-                    <td className="p-4 text-center hidden md:table-cell text-red-600">{team.pp}</td>
-                    <td className="p-4 text-center hidden lg:table-cell text-slate-500">{team.gf}</td>
-                    <td className="p-4 text-center hidden lg:table-cell text-slate-500">{team.gc}</td>
-                    <td className="p-4 text-center font-bold text-slate-700 hidden sm:table-cell">{team.gf - team.gc}</td>
-                    <td className="p-4">
-                      <div className="flex items-center justify-center gap-1">
-                        {team.form.slice(0, 5).map((result: string, i: number) => (
-                          <span key={i} title={result === 'W' ? 'Ganado' : result === 'D' ? 'Empate' : 'Perdido'} className={`w-5 h-5 rounded-sm flex items-center justify-center text-[10px] font-bold text-white shadow-sm ${
-                            result === 'W' ? 'bg-sanatorio-blue' : result === 'D' ? 'bg-slate-300' : 'bg-sanatorio-pink'
+          {[
+            { name: 'Grupo A', data: groupAStandings, color: 'text-sanatorio-blue', border: 'border-sanatorio-blue', badge: 'bg-sanatorio-blue' },
+            { name: 'Grupo B', data: groupBStandings, color: 'text-sanatorio-pink', border: 'border-sanatorio-pink', badge: 'bg-sanatorio-pink' }
+          ].map(group => group.data.length > 0 && (
+            <div key={group.name} className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-lg border-2 border-slate-100 overflow-hidden">
+              <div className={`px-8 py-6 border-b-4 ${group.border} flex justify-between items-center bg-gradient-to-r from-slate-50 to-white`}>
+                <h2 className={`text-2xl font-condensed font-bold ${group.color} flex items-center gap-3 uppercase tracking-wide`}>
+                  <Trophy className={`${group.color} w-6 h-6`} /> Posiciones {group.name}
+                </h2>
+              </div>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold">
+                      <th className="p-4 text-center w-12">Pos</th>
+                      <th className="p-4">Equipo</th>
+                      <th className="p-4 text-center">Pts</th>
+                      <th className="p-4 text-center hidden sm:table-cell">PJ</th>
+                      <th className="p-4 text-center hidden md:table-cell">G</th>
+                      <th className="p-4 text-center hidden md:table-cell">E</th>
+                      <th className="p-4 text-center hidden md:table-cell">P</th>
+                      <th className="p-4 text-center hidden sm:table-cell">GF</th>
+                      <th className="p-4 text-center hidden sm:table-cell">GC</th>
+                      <th className="p-4 text-center">DIF</th>
+                      <th className="p-4 text-center">Forma</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {group.data.map((team, idx) => (
+                      <tr key={team.id} className={`border-t border-slate-100 transition-colors ${idx < 2 ? 'bg-green-50/30 hover:bg-green-50/60' : 'hover:bg-slate-50/50'}`}>
+                        <td className="p-4 text-center">
+                          <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full font-bold shadow-sm ${
+                            idx < 2 ? 'bg-green-500 text-white scale-110' : 'text-slate-500 bg-slate-100'
                           }`}>
-                            {result}
+                            {idx + 1}
                           </span>
-                        ))}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                        </td>
+                        <td className="p-4 font-bold text-slate-800 text-base">{team.team} {idx < 2 && <span className="ml-2 text-[10px] bg-green-500 text-white px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm border border-green-600">Clasifica</span>}</td>
+                        <td className="p-4 text-center font-black text-sanatorio-pink text-xl">{team.pts}</td>
+                        <td className="p-4 text-center hidden sm:table-cell text-slate-600">{team.pj}</td>
+                        <td className="p-4 text-center hidden md:table-cell text-green-600">{team.pg}</td>
+                        <td className="p-4 text-center hidden md:table-cell text-slate-500">{team.pe}</td>
+                        <td className="p-4 text-center hidden md:table-cell text-red-600">{team.pp}</td>
+                        <td className="p-4 text-center hidden lg:table-cell text-slate-500">{team.gf}</td>
+                        <td className="p-4 text-center hidden lg:table-cell text-slate-500">{team.gc}</td>
+                        <td className="p-4 text-center font-bold text-slate-700 hidden sm:table-cell">{team.gf - team.gc}</td>
+                        <td className="p-4">
+                          <div className="flex items-center justify-center gap-1">
+                            {team.form.slice(0, 5).map((result: string, i: number) => (
+                              <span key={i} title={result === 'W' ? 'Ganado' : result === 'D' ? 'Empate' : 'Perdido'} className={`w-5 h-5 rounded-sm flex items-center justify-center text-[10px] font-bold text-white shadow-sm ${
+                                result === 'W' ? 'bg-sanatorio-blue' : result === 'D' ? 'bg-slate-300' : 'bg-sanatorio-pink'
+                              }`}>
+                                {result}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))}
+
+          {/* BRACKETS (LLAVES) */}
+          {(groupAStandings.length > 0 || groupBStandings.length > 0) && (
+            <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-lg border-2 border-slate-100 overflow-hidden mt-2 p-8">
+               <h3 className="text-2xl font-condensed font-bold text-purple-600 mb-8 text-center uppercase tracking-wide flex items-center justify-center gap-2">
+                  <Target className="w-6 h-6" /> Proyección de Semifinales
+               </h3>
+               
+               <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-4 lg:gap-8">
+                 {/* Semi 1 */}
+                 <div className="flex flex-col gap-2 w-full max-w-xs shrink-0">
+                    <div className="bg-gradient-to-r from-blue-50 to-white border-2 border-blue-100 p-4 rounded-xl shadow-sm text-center">
+                       <p className="text-[10px] text-sanatorio-blue font-bold uppercase tracking-widest mb-1">1º Grupo A</p>
+                       <p className="font-bold text-slate-800 text-lg">{groupAStandings[0]?.team || 'Por definir'}</p>
+                    </div>
+                    <div className="text-center text-slate-300 font-black text-xl">VS</div>
+                    <div className="bg-gradient-to-r from-pink-50 to-white border-2 border-pink-100 p-4 rounded-xl shadow-sm text-center">
+                       <p className="text-[10px] text-sanatorio-pink font-bold uppercase tracking-widest mb-1">2º Grupo B</p>
+                       <p className="font-bold text-slate-800 text-lg">{groupBStandings[1]?.team || 'Por definir'}</p>
+                    </div>
+                 </div>
+                 
+                 <div className="hidden md:flex flex-col items-center gap-2">
+                    <div className="w-12 h-1 bg-slate-200 rounded-full"></div>
+                 </div>
+
+                 <div className="flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-tr from-yellow-400 to-yellow-600 shadow-[0_0_30px_rgba(250,204,21,0.4)] border-4 border-white z-10 shrink-0">
+                    <Trophy className="w-10 h-10 text-white drop-shadow-md" />
+                 </div>
+
+                 <div className="hidden md:flex flex-col items-center gap-2">
+                    <div className="w-12 h-1 bg-slate-200 rounded-full"></div>
+                 </div>
+
+                 {/* Semi 2 */}
+                 <div className="flex flex-col gap-2 w-full max-w-xs shrink-0">
+                    <div className="bg-gradient-to-r from-pink-50 to-white border-2 border-pink-100 p-4 rounded-xl shadow-sm text-center">
+                       <p className="text-[10px] text-sanatorio-pink font-bold uppercase tracking-widest mb-1">1º Grupo B</p>
+                       <p className="font-bold text-slate-800 text-lg">{groupBStandings[0]?.team || 'Por definir'}</p>
+                    </div>
+                    <div className="text-center text-slate-300 font-black text-xl">VS</div>
+                    <div className="bg-gradient-to-r from-blue-50 to-white border-2 border-blue-100 p-4 rounded-xl shadow-sm text-center">
+                       <p className="text-[10px] text-sanatorio-blue font-bold uppercase tracking-widest mb-1">2º Grupo A</p>
+                       <p className="font-bold text-slate-800 text-lg">{groupAStandings[1]?.team || 'Por definir'}</p>
+                    </div>
+                 </div>
+               </div>
+               
+               <div className="text-center mt-8 inline-block w-full">
+                 <span className="bg-purple-100 text-purple-700 font-semibold px-4 py-1.5 rounded-full text-xs shadow-inner">
+                    * Si la fase de grupos terminara hoy, estos serían los cruces
+                 </span>
+               </div>
+            </div>
+          )}
+
         </div>
 
         {/* LATEST RESULTS WIDGET */}
