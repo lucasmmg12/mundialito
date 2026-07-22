@@ -26,14 +26,14 @@ export const ProdeDashboard = () => {
   const fetchData = async () => {
     try {
       // Fetch all matches for probability calculation
-      const { data: allM } = await supabase.from('matches').select('*').neq('status', 'scheduled');
+      const { data: allM } = await supabase.from('matches').select('*').neq('status', 'pending');
       if (allM) setAllMatches(allM);
 
       // Fetch scheduled matches
       const { data: scheduled } = await supabase
         .from('matches')
         .select('*, home_team:home_team_id(*), away_team:away_team_id(*)')
-        .eq('status', 'scheduled')
+        .eq('status', 'pending')
         .order('match_date', { ascending: true });
 
       if (scheduled) setMatches(scheduled);

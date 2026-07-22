@@ -14,6 +14,8 @@ export const AdminMatches = () => {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showSemisModal, setShowSemisModal] = useState(false);
+  const [semisProjection, setSemisProjection] = useState<any>(null);
   const [activeLiveMatch, setActiveLiveMatch] = useState<any | null>(null);
 
   // Form state for single manual match
@@ -201,8 +203,7 @@ export const AdminMatches = () => {
     setGenerating(false);
   };
 
-  const generateSemifinals = async () => {
-
+  const generateSemifinals = () => {
     const groupA = calculateStandings('Grupo A');
     const groupB = calculateStandings('Grupo B');
 
@@ -216,26 +217,29 @@ export const AdminMatches = () => {
     const firstB = groupB[0];
     const secondB = groupB[1];
 
-    if (!window.confirm(`Se generarán las siguientes semifinales:\n1. ${firstA.name} (1ºA) vs ${secondB.name} (2ºB)\n2. ${firstB.name} (1ºB) vs ${secondA.name} (2ºA)\n\n¿Estás de acuerdo? (Luego podrás eliminarlas y cargarlas manualmente si necesitas editarlas)`)) {
-      return;
-    }
+    setSemisProjection({ firstA, secondA, firstB, secondB });
+    setShowSemisModal(true);
+  };
 
+  const confirmGenerateSemifinals = async () => {
+    setShowSemisModal(false);
     setGenerating(true);
+    
     let date = new Date();
     date.setDate(date.getDate() + 2);
     date.setHours(10, 0, 0, 0);
 
     const semis = [
       {
-        home_team_id: firstA.id,
-        away_team_id: secondB.id,
+        home_team_id: semisProjection.firstA.id,
+        away_team_id: semisProjection.secondB.id,
         status: 'pending',
         match_date: date.toISOString(),
         notes: 'Semifinal 1'
       },
       {
-        home_team_id: firstB.id,
-        away_team_id: secondA.id,
+        home_team_id: semisProjection.firstB.id,
+        away_team_id: semisProjection.secondA.id,
         status: 'pending',
         match_date: date.toISOString(),
         notes: 'Semifinal 2'
@@ -553,6 +557,45 @@ export const AdminMatches = () => {
                   className="px-4 py-2 font-bold text-white bg-sanatorio-pink rounded-lg hover:bg-pink-600 shadow-md transition-colors"
                 >
                   Generar Fixture
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showSemisModal && semisProjection && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="bg-purple-600 text-white px-6 py-4">
+              <h3 className="font-condensed font-bold text-xl uppercase tracking-wider flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-yellow-400" />
+                Confirmar Semifinales
+              </h3>
+            </div>
+            <div className="p-6">
+              <p className="text-slate-600 font-medium mb-4">
+                Se generarán las siguientes semifinales:
+              </p>
+              <ul className="space-y-2 mb-6 text-slate-800 font-bold bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <li>1. {semisProjection.firstA.name} (1ºA) vs {semisProjection.secondB.name} (2ºB)</li>
+                <li>2. {semisProjection.firstB.name} (1ºB) vs {semisProjection.secondA.name} (2ºA)</li>
+              </ul>
+              <p className="text-sm text-slate-500 italic mb-6">
+                ¿Estás de acuerdo? (Luego podrás eliminarlas y cargarlas manualmente si necesitas editarlas).
+              </p>
+              <div className="flex justify-end gap-3">
+                <button 
+                  onClick={() => setShowSemisModal(false)}
+                  className="px-4 py-2 font-bold text-slate-500 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={confirmGenerateSemifinals}
+                  className="px-4 py-2 font-bold text-white bg-purple-600 rounded-lg hover:bg-purple-700 shadow-md transition-colors"
+                >
+                  Aceptar
                 </button>
               </div>
             </div>
