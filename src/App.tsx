@@ -9,7 +9,7 @@ import { AdminMatches } from './pages/admin/AdminMatches';
 import { PublicBlog } from './pages/PublicBlog';
 import { TacticalBoard } from './pages/TacticalBoard';
 import { TeamManagement } from './pages/TeamManagement';
-import { BarChart2, Shield, Image, Crosshair, Users, Menu, X, Volume2, VolumeX, Trophy } from 'lucide-react';
+import { BarChart2, Image, Crosshair, Volume2, VolumeX, Trophy } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 
 const AudioPlayer = () => {
@@ -99,24 +99,51 @@ const Navigation = () => {
   return (
     <nav className="hidden md:flex space-x-6">
       <Link to="/" className={`flex items-center gap-2 font-semibold transition-colors border-b-2 py-2 ${isActive('/')}`}>
-        <BarChart2 className="w-4 h-4" /> Inicio / Estadísticas
-      </Link>
-      <Link to="/inscripcion" className={`flex items-center gap-2 font-semibold transition-colors border-b-2 py-2 ${isActive('/inscripcion')}`}>
-        <Users className="w-4 h-4" /> Inscripción de Equipo
-      </Link>
-      <Link to="/admin" className={`flex items-center gap-2 font-semibold transition-colors border-b-2 py-2 ${isActive('/admin')}`}>
-        <Shield className="w-4 h-4" /> Administración
+        <BarChart2 className="w-4 h-4" /> Inicio
       </Link>
       <Link to="/blog" className={`flex items-center gap-2 font-semibold transition-colors border-b-2 py-2 ${isActive('/blog')}`}>
-        <Image className="w-4 h-4" /> Blog del Evento
+        <Image className="w-4 h-4" /> Blog
       </Link>
       <Link to="/prode/auth" className={`flex items-center gap-2 font-semibold transition-colors border-b-2 py-2 ${isActive('/prode/auth')}`}>
         <Trophy className="w-4 h-4" /> Prode
       </Link>
       <Link to="/pizarra" className={`flex items-center gap-2 font-semibold transition-colors border-b-2 py-2 ${isActive('/pizarra')}`}>
-        <Crosshair className="w-4 h-4" /> Pizarra Táctica
+        <Crosshair className="w-4 h-4" /> Pizarra Mágica
       </Link>
     </nav>
+  );
+};
+
+const MobileBottomNav = () => {
+  const location = useLocation();
+  
+  const isActive = (path: string) => {
+    return location.pathname === path 
+      ? "text-sanatorio-pink" 
+      : "text-slate-400 hover:text-slate-600";
+  };
+
+  return (
+    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-[60] pb-safe">
+      <nav className="flex justify-around items-center h-16">
+        <Link to="/" className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${isActive('/')}`}>
+          <BarChart2 className="w-5 h-5" />
+          <span className="text-[10px] font-bold">Inicio</span>
+        </Link>
+        <Link to="/blog" className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${isActive('/blog')}`}>
+          <Image className="w-5 h-5" />
+          <span className="text-[10px] font-bold">Blog</span>
+        </Link>
+        <Link to="/prode/auth" className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${isActive('/prode/auth')}`}>
+          <Trophy className="w-5 h-5" />
+          <span className="text-[10px] font-bold">Prode</span>
+        </Link>
+        <Link to="/pizarra" className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${isActive('/pizarra')}`}>
+          <Crosshair className="w-5 h-5" />
+          <span className="text-[10px] font-bold">Pizarra</span>
+        </Link>
+      </nav>
+    </div>
   );
 };
 
@@ -126,8 +153,6 @@ import { ProdeDashboard } from './pages/ProdeDashboard';
 import { ProdeLeaderboard } from './pages/ProdeLeaderboard';
 
 function App() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
   return (
     <AuthProvider>
       <Router>
@@ -164,62 +189,12 @@ function App() {
                 {/* Desktop Navigation */}
                 <Navigation />
 
-                {/* Mobile Menu Button */}
-                <button 
-                  className="md:hidden p-2 text-slate-600 hover:text-sanatorio-pink transition-colors"
-                  onClick={() => setIsMobileMenuOpen(true)}
-                >
-                  <Menu className="w-6 h-6" />
-                </button>
               </div>
             </div>
           </header>
 
-          {/* Mobile Navigation Drawer */}
-          {isMobileMenuOpen && (
-            <div className="fixed inset-0 z-[60] flex">
-              {/* Backdrop */}
-              <div 
-                className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity"
-                onClick={() => setIsMobileMenuOpen(false)}
-              />
-              {/* Drawer */}
-              <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white shadow-2xl animate-in slide-in-from-right duration-300 ml-auto h-full overflow-y-auto">
-                <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-                  <span className="font-condensed font-bold text-sanatorio-blue text-lg">MENÚ</span>
-                  <button 
-                    className="p-2 text-slate-400 hover:text-sanatorio-pink transition-colors rounded-full hover:bg-slate-50"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-                <nav className="flex-1 px-2 py-4 space-y-2">
-                  <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-600 hover:bg-sanatorio-pink/10 hover:text-sanatorio-pink">
-                    <BarChart2 className="w-5 h-5" /> Inicio / Estadísticas
-                  </Link>
-                  <Link to="/inscripcion" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-600 hover:bg-sanatorio-pink/10 hover:text-sanatorio-pink">
-                    <Users className="w-5 h-5" /> Inscripción de Equipo
-                  </Link>
-                  <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-600 hover:bg-sanatorio-pink/10 hover:text-sanatorio-pink">
-                    <Shield className="w-5 h-5" /> Administración
-                  </Link>
-                  <Link to="/blog" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-600 hover:bg-sanatorio-pink/10 hover:text-sanatorio-pink">
-                    <Image className="w-5 h-5" /> Blog del Evento
-                  </Link>
-                  <Link to="/prode/auth" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-600 hover:bg-sanatorio-pink/10 hover:text-sanatorio-pink">
-                    <Trophy className="w-5 h-5" /> Prode
-                  </Link>
-                  <Link to="/pizarra" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-600 hover:bg-sanatorio-pink/10 hover:text-sanatorio-pink">
-                    <Crosshair className="w-5 h-5" /> Pizarra Táctica
-                  </Link>
-                </nav>
-              </div>
-            </div>
-          )}
-
           {/* Main Content Area */}
-          <main className="w-full px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+          <main className="w-full px-4 sm:px-6 lg:px-8 py-8 relative z-10 pb-24 md:pb-8">
             <Routes>
               <Route path="/" element={<PublicDashboard />} />
               <Route path="/inscripcion" element={<PublicRegistration />} />
@@ -238,6 +213,9 @@ function App() {
           
           {/* Global Audio Player */}
           <AudioPlayer />
+          
+          {/* Mobile Bottom Navigation */}
+          <MobileBottomNav />
         </div>
       </Router>
     </AuthProvider>
