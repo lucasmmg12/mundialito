@@ -121,7 +121,7 @@ export function PublicBlog() {
       {/* Floating Action Button */}
       <button 
         onClick={() => setIsModalOpen(true)}
-        className="fixed bottom-8 right-8 z-40 bg-sanatorio-pink text-white w-14 h-14 rounded-full shadow-2xl shadow-pink-500/40 flex items-center justify-center hover:bg-pink-600 hover:scale-105 transition-all duration-300"
+        className="fixed bottom-24 md:bottom-12 right-4 md:right-8 z-40 bg-sanatorio-pink text-white w-14 h-14 rounded-full shadow-2xl shadow-pink-500/40 flex items-center justify-center hover:bg-pink-600 hover:scale-105 transition-all duration-300"
       >
         <Plus className="w-6 h-6" />
       </button>

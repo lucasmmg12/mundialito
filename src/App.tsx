@@ -70,7 +70,7 @@ const AudioPlayer = () => {
   };
 
   return (
-    <div className="fixed bottom-4 left-4 z-[100]">
+    <div className="fixed bottom-24 md:bottom-8 left-4 md:left-8 z-[100]">
       <audio 
         ref={audioRef} 
         src="/videoplayback.weba" 

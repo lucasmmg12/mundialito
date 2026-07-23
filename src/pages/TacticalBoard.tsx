@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getTeams, getPlayersByTeam } from '../lib/mundialito-service';
-import { Shield, User, Loader2 } from 'lucide-react';
+import { Shield, User, Loader2, ChevronDown } from 'lucide-react';
 
 interface Position {
   x: number;
@@ -12,6 +12,7 @@ export function TacticalBoard() {
   const [selectedTeamId, setSelectedTeamId] = useState<string>('');
   const [players, setPlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   
   // Store player positions (if they are on the pitch)
   const [positions, setPositions] = useState<Record<string, Position>>({});
@@ -153,15 +154,60 @@ export function TacticalBoard() {
           <label className="block text-sm font-semibold text-slate-600 mb-2 uppercase tracking-wider">
             Seleccionar Equipo
           </label>
-          <select 
-            value={selectedTeamId}
-            onChange={(e) => setSelectedTeamId(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-sanatorio-pink focus:border-sanatorio-pink block p-3 transition-colors shadow-sm"
-          >
-            {teams.map(t => (
-              <option key={t.id} value={t.id}>{t.name}</option>
-            ))}
-          </select>
+          <div className="relative">
+            <button 
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-sanatorio-pink focus:border-sanatorio-pink flex items-center justify-between p-3 transition-colors shadow-sm"
+            >
+              <div className="flex items-center gap-3">
+                {teams.find(t => t.id === selectedTeamId)?.logo_url ? (
+                  <img 
+                    src={teams.find(t => t.id === selectedTeamId)?.logo_url} 
+                    alt={teams.find(t => t.id === selectedTeamId)?.name} 
+                    className="w-6 h-6 rounded-full object-cover shadow-sm bg-white" 
+                  />
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-500">?</div>
+                )}
+                <span className="font-semibold">{teams.find(t => t.id === selectedTeamId)?.name || 'Seleccionar Equipo'}</span>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {isDropdownOpen && (
+              <>
+                <div 
+                  className="fixed inset-0 z-40" 
+                  onClick={() => setIsDropdownOpen(false)}
+                />
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-100 rounded-xl shadow-xl z-50 max-h-64 overflow-y-auto">
+                  {teams.map(t => (
+                    <button
+                      key={t.id}
+                      onClick={() => {
+                        setSelectedTeamId(t.id);
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`w-full text-left p-3 flex items-center gap-3 hover:bg-slate-50 transition-colors ${selectedTeamId === t.id ? 'bg-sanatorio-pink/5' : ''}`}
+                    >
+                      {t.logo_url ? (
+                        <img 
+                          src={t.logo_url} 
+                          alt={t.name} 
+                          className="w-6 h-6 rounded-full object-cover shadow-sm bg-white" 
+                        />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-500">?</div>
+                      )}
+                      <span className={`font-semibold ${selectedTeamId === t.id ? 'text-sanatorio-pink' : 'text-slate-700'}`}>
+                        {t.name}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="flex-1">
