@@ -564,6 +564,7 @@ export const PublicDashboard = () => {
           </div>
         </div>
       </div>
+      </div>
       
       {/* Info Modal para Estadísticas */}
       {activeStatInfo && (

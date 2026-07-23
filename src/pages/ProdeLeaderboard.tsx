@@ -97,7 +97,6 @@ export const ProdeLeaderboard = () => {
   }
 
   return (
-  return (
     <div className="max-w-4xl mx-auto space-y-6 pb-32 px-2 md:px-4 pt-4">
       <Link to="/" className="inline-flex items-center gap-2 text-white hover:text-sanatorio-pink transition-colors font-bold mb-2 bg-slate-900/40 backdrop-blur-sm border border-white/20 px-4 py-2 rounded-xl w-fit shadow-md">
         ← Volver al Inicio
