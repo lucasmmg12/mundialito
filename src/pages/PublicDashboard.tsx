@@ -12,6 +12,7 @@ export const PublicDashboard = () => {
   const [upcomingMatches, setUpcomingMatches] = useState<any[]>([]);
   const [stats, setStats] = useState<any>({ topScorer: null, topAssists: null, topMVP: null });
   const [loading, setLoading] = useState(true);
+  const [activeStatInfo, setActiveStatInfo] = useState<{title: string, explanation: string} | null>(null);
 
   // Onboarding & Tour state
   const [showOnboarding, setShowOnboarding] = useState(!sessionStorage.getItem('mundialito_onboarding_seen'));
@@ -120,8 +121,11 @@ export const PublicDashboard = () => {
     setLoading(false);
   };
 
-  const StatCard = ({ title, value, subtitle, icon: Icon, bgGradient }: any) => (
-    <div className={`relative overflow-hidden rounded-2xl p-4 shadow-lg ${bgGradient} transition-all duration-300 hover:scale-[1.02] hover:shadow-xl group border border-white/20 flex items-center justify-between min-h-[90px]`}>
+  const StatCard = ({ title, value, subtitle, icon: Icon, bgGradient, explanation }: any) => (
+    <div 
+      onClick={() => setActiveStatInfo({ title, explanation })}
+      className={`relative overflow-hidden rounded-2xl p-4 shadow-lg ${bgGradient} transition-all duration-300 hover:scale-[1.02] hover:shadow-xl group border border-white/20 flex items-center justify-between min-h-[90px] cursor-pointer`}
+    >
       {/* Background Icon */}
       <Icon className="absolute -right-2 top-1/2 -translate-y-1/2 w-24 h-24 text-white/10 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-500" strokeWidth={1} />
       
@@ -132,7 +136,9 @@ export const PublicDashboard = () => {
         </div>
         
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-black uppercase tracking-widest text-white/90 mb-0.5 drop-shadow-sm">{title}</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-white/90 mb-0.5 drop-shadow-sm flex items-center gap-1">
+            {title}
+          </p>
           <h3 className="text-xl font-bold text-white leading-tight truncate drop-shadow-md">{value}</h3>
           <p className="text-xs font-semibold text-white/90 truncate">{subtitle}</p>
         </div>
@@ -180,6 +186,7 @@ export const PublicDashboard = () => {
           subtitle={stats.topScorer?.team?.name} 
           icon={Target} 
           bgGradient="bg-gradient-to-br from-[#ff0f7b] to-[#f89b29]" 
+          explanation="Muestra al jugador con la mayor cantidad de goles convertidos en lo que va del torneo."
         />
         <StatCard 
           title="Rey de Asistencias" 
@@ -187,6 +194,7 @@ export const PublicDashboard = () => {
           subtitle={stats.topAssists?.team?.name} 
           icon={Activity} 
           bgGradient="bg-gradient-to-br from-[#00c6ff] to-[#0072ff]" 
+          explanation="Destaca al jugador que ha dado el mayor número de pases de gol (asistencias) a sus compañeros."
         />
         <StatCard 
           title="Ranking MVP" 
@@ -194,6 +202,7 @@ export const PublicDashboard = () => {
           subtitle={stats.topMVP?.team?.name} 
           icon={Star} 
           bgGradient="bg-gradient-to-br from-[#8E2DE2] to-[#4A00E0]" 
+          explanation="El Jugador Más Valioso. Al finalizar cada partido se elige a un MVP por su desempeño destacado en la cancha."
         />
         <StatCard 
           title="Premio Fair Play" 
@@ -201,6 +210,7 @@ export const PublicDashboard = () => {
           subtitle="Solo 2 amarillas" 
           icon={Shield} 
           bgGradient="bg-gradient-to-br from-[#11998e] to-[#38ef7d]" 
+          explanation="Este premio se otorgará al finalizar el torneo al equipo con mejor conducta, basándose en la menor cantidad de tarjetas recibidas."
         />
       </div>
 
@@ -554,7 +564,23 @@ export const PublicDashboard = () => {
           </div>
         </div>
       </div>
-    </div>
+      
+      {/* Info Modal para Estadísticas */}
+      {activeStatInfo && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setActiveStatInfo(null)} />
+          <div className="bg-white rounded-3xl p-6 w-full max-w-xs relative z-10 shadow-2xl animate-in fade-in zoom-in-95 border border-slate-100">
+            <h3 className="text-xl font-bold text-slate-800 mb-3">{activeStatInfo.title}</h3>
+            <p className="text-sm text-slate-600 leading-relaxed mb-6">{activeStatInfo.explanation}</p>
+            <button 
+              onClick={() => setActiveStatInfo(null)}
+              className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl transition-colors"
+            >
+              Entendido
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 };

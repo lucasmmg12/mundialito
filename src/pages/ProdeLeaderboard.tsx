@@ -97,32 +97,33 @@ export const ProdeLeaderboard = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <Link to="/" className="inline-flex items-center gap-2 text-slate-500 hover:text-sanatorio-pink transition-colors font-semibold mb-4 bg-white/50 px-4 py-2 rounded-xl w-fit">
+  return (
+    <div className="max-w-4xl mx-auto space-y-6 pb-32 px-2 md:px-4 pt-4">
+      <Link to="/" className="inline-flex items-center gap-2 text-white hover:text-sanatorio-pink transition-colors font-bold mb-2 bg-slate-900/40 backdrop-blur-sm border border-white/20 px-4 py-2 rounded-xl w-fit shadow-md">
         ← Volver al Inicio
       </Link>
 
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 bg-white/10 backdrop-blur-md p-6 rounded-3xl border border-white/20 shadow-xl">
         <div>
-          <h1 className="text-3xl font-condensed font-bold text-sanatorio-blue flex items-center gap-3">
-            <Medal className="w-8 h-8 text-yellow-500" /> 
+          <h1 className="text-3xl md:text-4xl font-condensed font-bold text-white flex items-center gap-3 drop-shadow-lg">
+            <Medal className="w-10 h-10 text-yellow-400 drop-shadow-md" /> 
             Ranking General
           </h1>
-          <p className="text-slate-600 mt-2">Tabla de posiciones del Prode Mundialito</p>
+          <p className="text-white/90 font-medium mt-2 drop-shadow-sm text-sm md:text-base">Tabla de posiciones del Prode Mundialito</p>
         </div>
-        <Link to="/prode" className="flex items-center gap-2 bg-white px-4 py-3 rounded-xl text-sanatorio-blue font-bold shadow-sm border border-slate-200 hover:border-sanatorio-pink transition-colors w-full md:w-auto justify-center">
-          <Trophy className="w-5 h-5 text-sanatorio-pink" /> Volver a Mis Pronósticos
+        <Link to="/prode" className="flex items-center gap-2 bg-white px-5 py-3 rounded-xl text-sanatorio-blue font-bold shadow-lg border border-slate-200 hover:border-sanatorio-pink transition-colors w-full md:w-auto justify-center">
+          <Trophy className="w-5 h-5 text-sanatorio-pink" /> Mis Pronósticos
         </Link>
       </div>
 
-      <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-        <table className="w-full text-left border-collapse">
+      <div className="bg-white/95 backdrop-blur-md rounded-3xl shadow-xl border border-slate-100 w-full overflow-x-auto">
+        <table className="w-full text-left border-collapse min-w-[340px]">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
-              <th className="py-4 px-6 font-bold text-slate-500 w-16 text-center">Pos</th>
-              <th className="py-4 px-6 font-bold text-slate-500">Participante</th>
-              <th className="py-4 px-6 font-bold text-slate-500">Equipo</th>
-              <th className="py-4 px-6 font-bold text-slate-500 text-right">Puntos</th>
+            <tr className="bg-gradient-to-r from-slate-100 to-white border-b border-slate-200">
+              <th className="py-4 px-2 md:px-6 font-bold text-slate-500 w-10 md:w-16 text-center text-xs md:text-sm">Pos</th>
+              <th className="py-4 px-2 md:px-6 font-bold text-slate-500 text-xs md:text-sm">Participante</th>
+              <th className="py-4 px-2 md:px-6 font-bold text-slate-500 text-xs md:text-sm hidden sm:table-cell">Equipo</th>
+              <th className="py-4 px-2 md:px-6 font-bold text-slate-500 text-right text-xs md:text-sm">Puntos</th>
             </tr>
           </thead>
           <tbody>
@@ -135,41 +136,54 @@ export const ProdeLeaderboard = () => {
             ) : (
               profiles.map((profile, index) => (
                 <tr key={profile.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
-                  <td className="py-4 px-6 text-center">
-                    <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm
-                      ${index === 0 ? 'bg-yellow-100 text-yellow-700' : 
-                        index === 1 ? 'bg-slate-200 text-slate-700' : 
-                        index === 2 ? 'bg-amber-100 text-amber-700' : 
-                        'bg-slate-50 text-slate-500'}`}
+                  <td className="py-3 md:py-4 px-2 md:px-6 text-center">
+                    <span className={`inline-flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-full font-bold text-xs md:text-sm shadow-sm
+                      ${index === 0 ? 'bg-yellow-400 text-white scale-110' : 
+                        index === 1 ? 'bg-slate-300 text-slate-700' : 
+                        index === 2 ? 'bg-amber-600 text-white' : 
+                        'bg-slate-50 text-slate-500 border border-slate-200'}`}
                     >
                       {index + 1}
                     </span>
                   </td>
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-3">
+                  <td className="py-3 md:py-4 px-2 md:px-6">
+                    <div className="flex items-center gap-2 md:gap-3">
                       <img 
                         src={profile.avatar_url || 'https://via.placeholder.com/40'} 
                         alt="Avatar" 
-                        className="w-10 h-10 rounded-full object-cover border border-slate-200"
+                        className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover border border-slate-200 shrink-0 shadow-sm"
                       />
-                      <span className="font-bold text-slate-700">{profile.full_name || 'Usuario'}</span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-bold text-slate-700 text-sm md:text-base truncate">{profile.full_name || 'Usuario'}</span>
+                        {/* Show team name here on mobile only */}
+                        <div className="flex items-center gap-1 sm:hidden mt-0.5">
+                          {profile.team ? (
+                            <>
+                              <img src={profile.team.logo_url || 'https://via.placeholder.com/30'} alt="Team" className="w-3 h-3 object-contain shrink-0" />
+                              <span className="text-[10px] text-slate-500 truncate">{profile.team.name}</span>
+                            </>
+                          ) : (
+                            <span className="text-[10px] text-slate-400 italic">Sin equipo</span>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="py-3 md:py-4 px-2 md:px-6 hidden sm:table-cell">
                     {profile.team ? (
                       <div className="flex items-center gap-2">
                         <img 
                           src={profile.team.logo_url || 'https://via.placeholder.com/30'} 
                           alt="Team Logo" 
-                          className="w-6 h-6 object-contain"
+                          className="w-5 h-5 md:w-6 md:h-6 object-contain shrink-0 drop-shadow-sm"
                         />
-                        <span className="text-sm font-semibold text-slate-600">{profile.team.name}</span>
+                        <span className="text-xs md:text-sm font-semibold text-slate-600 truncate max-w-[120px] md:max-w-none">{profile.team.name}</span>
                       </div>
                     ) : (
-                      <span className="text-sm text-slate-400 italic">Sin equipo</span>
+                      <span className="text-xs md:text-sm text-slate-400 italic">Sin equipo</span>
                     )}
                   </td>
-                  <td className="py-4 px-6 text-right font-bold text-sanatorio-blue text-lg">
+                  <td className="py-3 md:py-4 px-2 md:px-6 text-right font-black text-sanatorio-blue text-base md:text-xl">
                     {profile.total_points}
                   </td>
                 </tr>

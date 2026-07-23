@@ -39,29 +39,75 @@ async function createFixture() {
   const matchesToInsert = [];
   const matchDate = '2026-07-25T12:00:00Z'; // Hora ficticia, en frontend la ocultaremos
 
-  // Fixture Grupo A (Todos contra todos = 6 partidos)
-  for (let i = 0; i < groupA.length; i++) {
-    for (let j = i + 1; j < groupA.length; j++) {
-      matchesToInsert.push({
-        home_team_id: groupA[i].id,
-        away_team_id: groupA[j].id,
-        status: 'scheduled',
-        match_date: matchDate,
-        notes: 'Grupo A'
-      });
+  // Función para generar fixture Round-Robin
+  function generateRounds(groupTeams) {
+    let localTeams = [...groupTeams];
+    if (localTeams.length % 2 !== 0) {
+      localTeams.push(null); // 'null' es el equipo comodín (fecha libre)
     }
+
+    let numRounds = localTeams.length - 1;
+    let matchesPerRound = localTeams.length / 2;
+    let rounds = [];
+
+    for (let round = 0; round < numRounds; round++) {
+      let currentRound = [];
+      for (let match = 0; match < matchesPerRound; match++) {
+        let home = localTeams[match];
+        let away = localTeams[localTeams.length - 1 - match];
+        
+        if (home !== null && away !== null) {
+          // Alternar localía basada en si es ronda par o impar para el equipo fijo
+          if (match === 0 && round % 2 !== 0) {
+            currentRound.push({ home: away, away: home });
+          } else {
+            currentRound.push({ home, away });
+          }
+        }
+      }
+      rounds.push(currentRound);
+      
+      // Rotar equipos (mantener el primero fijo)
+      let fixed = localTeams.shift();
+      let last = localTeams.pop();
+      localTeams.unshift(last);
+      localTeams.unshift(fixed);
+    }
+    return rounds;
   }
 
-  // Fixture Grupo B (Todos contra todos = 10 partidos)
-  for (let i = 0; i < groupB.length; i++) {
-    for (let j = i + 1; j < groupB.length; j++) {
+  const roundsA = generateRounds(groupA);
+  const roundsB = generateRounds(groupB);
+
+  const flatMatchesA = roundsA.flat();
+  const flatMatchesB = roundsB.flat();
+
+  let aIndex = 0;
+  let bIndex = 0;
+
+  // Intercalar partidos 1 de A, 1 de B
+  while (aIndex < flatMatchesA.length || bIndex < flatMatchesB.length) {
+    if (aIndex < flatMatchesA.length) {
+      const match = flatMatchesA[aIndex];
       matchesToInsert.push({
-        home_team_id: groupB[i].id,
-        away_team_id: groupB[j].id,
+        home_team_id: match.home.id,
+        away_team_id: match.away.id,
         status: 'scheduled',
-        match_date: matchDate,
+        match_date: matchDate, // Hora ficticia
+        notes: 'Grupo A'
+      });
+      aIndex++;
+    }
+    if (bIndex < flatMatchesB.length) {
+      const match = flatMatchesB[bIndex];
+      matchesToInsert.push({
+        home_team_id: match.home.id,
+        away_team_id: match.away.id,
+        status: 'scheduled',
+        match_date: matchDate, // Hora ficticia
         notes: 'Grupo B'
       });
+      bIndex++;
     }
   }
 
