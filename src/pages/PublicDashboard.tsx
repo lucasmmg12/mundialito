@@ -284,60 +284,6 @@ export const PublicDashboard = () => {
             </div>
           ))}
 
-          {/* BRACKETS (LLAVES) */}
-          {(groupAStandings.length > 0 || groupBStandings.length > 0) && (
-            <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-lg border-2 border-slate-100 overflow-hidden mt-2 p-8">
-               <h3 className="text-2xl font-condensed font-bold text-purple-600 mb-8 text-center uppercase tracking-wide flex items-center justify-center gap-2">
-                  <Target className="w-6 h-6" /> Proyección de Semifinales
-               </h3>
-               
-               <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-4 lg:gap-8">
-                 {/* Semi 1 */}
-                 <div className="flex flex-col gap-2 w-full max-w-xs shrink-0">
-                    <div className="bg-gradient-to-r from-blue-50 to-white border-2 border-blue-100 p-4 rounded-xl shadow-sm text-center">
-                       <p className="text-[10px] text-sanatorio-blue font-bold uppercase tracking-widest mb-1">1º Grupo A</p>
-                       <p className="font-bold text-slate-800 text-lg">{groupAStandings[0]?.team || 'Por definir'}</p>
-                    </div>
-                    <div className="text-center text-slate-300 font-black text-xl">VS</div>
-                    <div className="bg-gradient-to-r from-pink-50 to-white border-2 border-pink-100 p-4 rounded-xl shadow-sm text-center">
-                       <p className="text-[10px] text-sanatorio-pink font-bold uppercase tracking-widest mb-1">2º Grupo B</p>
-                       <p className="font-bold text-slate-800 text-lg">{groupBStandings[1]?.team || 'Por definir'}</p>
-                    </div>
-                 </div>
-                 
-                 <div className="hidden md:flex flex-col items-center gap-2">
-                    <div className="w-12 h-1 bg-slate-200 rounded-full"></div>
-                 </div>
-
-                 <div className="flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-tr from-yellow-400 to-yellow-600 shadow-[0_0_30px_rgba(250,204,21,0.4)] border-4 border-white z-10 shrink-0">
-                    <Trophy className="w-10 h-10 text-white drop-shadow-md" />
-                 </div>
-
-                 <div className="hidden md:flex flex-col items-center gap-2">
-                    <div className="w-12 h-1 bg-slate-200 rounded-full"></div>
-                 </div>
-
-                 {/* Semi 2 */}
-                 <div className="flex flex-col gap-2 w-full max-w-xs shrink-0">
-                    <div className="bg-gradient-to-r from-pink-50 to-white border-2 border-pink-100 p-4 rounded-xl shadow-sm text-center">
-                       <p className="text-[10px] text-sanatorio-pink font-bold uppercase tracking-widest mb-1">1º Grupo B</p>
-                       <p className="font-bold text-slate-800 text-lg">{groupBStandings[0]?.team || 'Por definir'}</p>
-                    </div>
-                    <div className="text-center text-slate-300 font-black text-xl">VS</div>
-                    <div className="bg-gradient-to-r from-blue-50 to-white border-2 border-blue-100 p-4 rounded-xl shadow-sm text-center">
-                       <p className="text-[10px] text-sanatorio-blue font-bold uppercase tracking-widest mb-1">2º Grupo A</p>
-                       <p className="font-bold text-slate-800 text-lg">{groupAStandings[1]?.team || 'Por definir'}</p>
-                    </div>
-                 </div>
-               </div>
-               
-               <div className="text-center mt-8 inline-block w-full">
-                 <span className="bg-purple-100 text-purple-700 font-semibold px-4 py-1.5 rounded-full text-xs shadow-inner">
-                    * Si la fase de grupos terminara hoy, estos serían los cruces
-                 </span>
-               </div>
-            </div>
-          )}
 
         </div>
 
