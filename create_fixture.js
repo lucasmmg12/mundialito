@@ -19,8 +19,8 @@ async function createFixture() {
     return;
   }
 
-  if (teams.length !== 9) {
-    console.error(`Se esperaban 9 equipos, pero hay ${teams.length}`);
+  if (teams.length !== 11) {
+    console.error(`Se esperaban 11 equipos, pero hay ${teams.length}`);
     return;
   }
 
@@ -30,11 +30,11 @@ async function createFixture() {
   // Mezclar los equipos aleatoriamente
   const shuffledTeams = [...teams].sort(() => Math.random() - 0.5);
 
-  const groupA = shuffledTeams.slice(0, 4);
-  const groupB = shuffledTeams.slice(4, 9);
+  const groupA = shuffledTeams.slice(0, 5);
+  const groupB = shuffledTeams.slice(5, 11);
 
-  console.log('Grupo A (4 equipos):', groupA.map(t => t.name).join(', '));
-  console.log('Grupo B (5 equipos):', groupB.map(t => t.name).join(', '));
+  console.log('Grupo A (5 equipos):', groupA.map(t => t.name).join(', '));
+  console.log('Grupo B (6 equipos):', groupB.map(t => t.name).join(', '));
 
   const matchesToInsert = [];
   const matchDate = '2026-07-25T12:00:00Z'; // Hora ficticia, en frontend la ocultaremos
