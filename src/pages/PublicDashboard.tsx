@@ -52,7 +52,6 @@ export const PublicDashboard = () => {
       
       if (matchesData) {
         const completed = matchesData.filter(m => m.status === 'completed');
-        const completed = matchesData.filter(m => m.status === 'completed');
         const pending = matchesData.filter(m => m.status === 'pending').reverse(); // Ascending for upcoming
         setRecentMatches(completed);
         setUpcomingMatches(pending);
