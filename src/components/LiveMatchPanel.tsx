@@ -94,17 +94,17 @@ export function LiveMatchPanel({ match, onEndMatch }: Props) {
   return (
     <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 flex flex-col">
       {/* Header Marcador */}
-      <div className="bg-slate-900 text-white p-6 flex items-center justify-between">
-        <div className="flex-1 text-right">
-          <h3 className="text-xl font-bold truncate">{match.home_team.name}</h3>
+      <div className="bg-slate-900 text-white p-4 sm:p-6 flex items-center justify-between gap-2 sm:gap-4">
+        <div className="flex-1 min-w-0 text-right">
+          <h3 className="text-sm sm:text-xl font-bold truncate">{match.home_team.name}</h3>
         </div>
-        <div className="px-8 flex items-center gap-4">
-          <span className="text-5xl font-black text-sanatorio-blue">{score.home}</span>
-          <span className="text-xl font-black text-slate-500">-</span>
-          <span className="text-5xl font-black text-sanatorio-pink">{score.away}</span>
+        <div className="shrink-0 flex items-center gap-2 sm:gap-4 px-2 sm:px-8">
+          <span className="text-4xl sm:text-5xl font-black text-sanatorio-blue">{score.home}</span>
+          <span className="text-base sm:text-xl font-black text-slate-500">-</span>
+          <span className="text-4xl sm:text-5xl font-black text-sanatorio-pink">{score.away}</span>
         </div>
-        <div className="flex-1 text-left">
-          <h3 className="text-xl font-bold truncate">{match.away_team.name}</h3>
+        <div className="flex-1 min-w-0 text-left">
+          <h3 className="text-sm sm:text-xl font-bold truncate">{match.away_team.name}</h3>
         </div>
       </div>
 
