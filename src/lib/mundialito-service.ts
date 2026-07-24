@@ -121,6 +121,42 @@ export const endMatch = async (matchId: string) => {
   return match;
 };
 
+export const cancelMatch = async (matchId: string) => {
+  // 1. Obtener eventos para revertir stats de jugadores
+  const { data: events, error: fetchError } = await supabase
+    .from('match_events')
+    .select('*')
+    .eq('match_id', matchId);
+    
+  if (!fetchError && events) {
+    for (const ev of events) {
+      const { data: player } = await supabase.from('players').select('*').eq('id', ev.player_id).single();
+      if (player) {
+         const updates: any = {};
+         if (ev.event_type === 'goal') updates.goals = Math.max(0, (player.goals || 0) - 1);
+         if (ev.event_type === 'assist') updates.assists = Math.max(0, (player.assists || 0) - 1);
+         if (ev.event_type === 'yellow_card') updates.yellow_cards = Math.max(0, (player.yellow_cards || 0) - 1);
+         if (ev.event_type === 'red_card') updates.red_cards = Math.max(0, (player.red_cards || 0) - 1);
+         await supabase.from('players').update(updates).eq('id', ev.player_id);
+      }
+    }
+  }
+
+  // 2. Borrar eventos
+  await supabase.from('match_events').delete().eq('match_id', matchId);
+
+  // 3. Resetear partido
+  const { data: match, error } = await supabase
+    .from('matches')
+    .update({ status: 'pending', home_goals: 0, away_goals: 0, mvp_player_id: null })
+    .eq('id', matchId)
+    .select()
+    .single();
+    
+  if (error) throw error;
+  return match;
+};
+
 export const recordMatchEvent = async (matchId: string, playerId: string, eventType: 'goal' | 'assist' | 'yellow_card' | 'red_card', minute: number = 0) => {
   // 1. Inserción del evento
   const { data: eventData, error: eventError } = await supabase

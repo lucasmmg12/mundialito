@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { getPlayersByTeam, recordMatchEvent, endMatch } from '../lib/mundialito-service';
-import { Goal, Flag, Square, Timer, CheckCircle } from 'lucide-react';
+import { getPlayersByTeam, recordMatchEvent, endMatch, cancelMatch } from '../lib/mundialito-service';
+import { Goal, Flag, Square, Timer, CheckCircle, XCircle } from 'lucide-react';
 
 interface Props {
   match: any;
@@ -20,6 +20,7 @@ export function LiveMatchPanel({ match, onEndMatch }: Props) {
   const [pendingAction, setPendingAction] = useState<'goal'|'assist'|'yellow_card'|'red_card'|null>(null);
   const [pendingTeam, setPendingTeam] = useState<'home'|'away'|null>(null);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   useEffect(() => {
     const fetchPlayers = async () => {
@@ -86,6 +87,22 @@ export function LiveMatchPanel({ match, onEndMatch }: Props) {
       alert('Error al finalizar el partido');
     } finally {
       setShowEndConfirm(false);
+    }
+  };
+
+  const handleCancelMatchClick = () => {
+    setShowCancelConfirm(true);
+  };
+
+  const confirmCancelMatch = async () => {
+    try {
+      await cancelMatch(match.id);
+      onEndMatch();
+    } catch (err) {
+      console.error(err);
+      alert('Error al cancelar el partido');
+    } finally {
+      setShowCancelConfirm(false);
     }
   };
 
@@ -182,7 +199,10 @@ export function LiveMatchPanel({ match, onEndMatch }: Props) {
         </div>
       </div>
 
-      <div className="p-4 bg-slate-900 flex justify-end">
+      <div className="p-4 bg-slate-900 flex justify-end gap-4">
+        <button onClick={handleCancelMatchClick} className="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-6 rounded-xl flex items-center gap-2 shadow-sm transition-all uppercase tracking-wider text-sm">
+          Cancelar
+        </button>
         <button onClick={handleFinishMatchClick} className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-xl flex items-center gap-2 shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] uppercase tracking-wider text-sm">
           <CheckCircle className="w-5 h-5" /> Finalizar Partido
         </button>
@@ -243,6 +263,39 @@ export function LiveMatchPanel({ match, onEndMatch }: Props) {
                 className="flex-1 py-3 px-4 text-center font-bold text-white bg-red-500 rounded-xl hover:bg-red-600 shadow-md hover:shadow-lg transition-all"
               >
                 Sí, Finalizar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Confirmación Cancelar Partido */}
+      {showCancelConfirm && (
+        <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4 transition-all">
+          <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-100 transform scale-100 animate-in fade-in zoom-in duration-200">
+            <div className="p-8 text-center space-y-4">
+              <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                <XCircle className="w-10 h-10 text-slate-500" />
+              </div>
+              <h3 className="text-2xl font-condensed font-black text-slate-800 uppercase tracking-wide">
+                Cancelar Partido
+              </h3>
+              <p className="text-slate-500 font-medium">
+                ¿Estás seguro que deseas cancelar este encuentro? Se borrarán todos los goles y eventos, volviendo al estado de "No Jugado".
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 p-6 bg-slate-50 border-t border-slate-100">
+              <button 
+                onClick={() => setShowCancelConfirm(false)} 
+                className="flex-1 py-3 px-4 text-center font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-100 hover:text-slate-800 transition-all shadow-sm"
+              >
+                Volver
+              </button>
+              <button 
+                onClick={confirmCancelMatch} 
+                className="flex-1 py-3 px-4 text-center font-bold text-white bg-slate-800 rounded-xl hover:bg-slate-900 shadow-md transition-all"
+              >
+                Sí, Cancelar
               </button>
             </div>
           </div>

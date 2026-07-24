@@ -49,9 +49,10 @@ export const PublicDashboard = () => {
       
       if (matchesData) {
         const completed = matchesData.filter(m => m.status === 'completed');
+        const completed = matchesData.filter(m => m.status === 'completed');
         const pending = matchesData.filter(m => m.status === 'pending').reverse(); // Ascending for upcoming
-        setRecentMatches(completed.slice(0, 3));
-        setUpcomingMatches(pending.slice(0, 3));
+        setRecentMatches(completed);
+        setUpcomingMatches(pending);
       }
 
       // Calculate Standings
@@ -370,10 +371,10 @@ export const PublicDashboard = () => {
         <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-lg border-2 border-slate-100 overflow-hidden flex flex-col">
           <div className="px-8 py-6 border-b-4 border-sanatorio-blue bg-gradient-to-r from-slate-50 to-white">
             <h2 className="text-xl font-condensed font-bold text-sanatorio-blue uppercase tracking-wide flex items-center gap-2">
-              <Activity className="text-sanatorio-pink w-5 h-5" /> Resultados y Fixture
+              <Activity className="text-sanatorio-pink w-5 h-5" /> Resultados Oficiales
             </h2>
           </div>
-          <div className="p-6 flex-1 flex flex-col gap-4">
+          <div className="p-6 flex-1 flex flex-col gap-4 max-h-[500px] overflow-y-auto">
             
             {loading ? (
               <div className="text-center text-slate-500 font-bold">Cargando resultados...</div>
@@ -412,10 +413,10 @@ export const PublicDashboard = () => {
         <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-lg border-2 border-slate-100 overflow-hidden flex flex-col">
           <div className="px-8 py-6 border-b-4 border-[#f89b29] bg-gradient-to-r from-slate-50 to-white">
             <h2 className="text-xl font-condensed font-bold text-slate-800 uppercase tracking-wide flex items-center gap-2">
-              <Calendar className="text-[#f89b29] w-5 h-5" /> Próximos Partidos
+              <Calendar className="text-[#f89b29] w-5 h-5" /> Fixture Completo (Pendientes)
             </h2>
           </div>
-          <div className="p-6 flex-1 flex flex-col gap-4">
+          <div className="p-6 flex-1 flex flex-col gap-4 max-h-[500px] overflow-y-auto">
             
             {loading ? (
               <div className="text-center text-slate-500 font-bold">Cargando partidos...</div>
