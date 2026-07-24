@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getTeams, getPlayersByTeam } from '../lib/mundialito-service';
-import { Shield, User, Loader2, ChevronDown } from 'lucide-react';
+import { Shield, User, Loader2, ChevronDown, Pen, Eraser, Move } from 'lucide-react';
 
 interface Position {
   x: number;
@@ -20,7 +20,77 @@ export function TacticalBoard() {
   
   const pitchRef = useRef<HTMLDivElement>(null);
 
+  const [isDrawingMode, setIsDrawingMode] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const isDrawing = useRef(false);
+  const lastPos = useRef({ x: 0, y: 0 });
 
+  const getCoordinates = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!canvasRef.current) return { x: 0, y: 0 };
+    const rect = canvasRef.current.getBoundingClientRect();
+    const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top
+    };
+  };
+
+  const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDrawingMode) return;
+    // Don't preventDefault unconditionally on touch start or it breaks scrolling,
+    // but in canvas area it's fine because touch-action: none is on the container
+    isDrawing.current = true;
+    lastPos.current = getCoordinates(e);
+  };
+
+  const draw = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDrawingMode || !isDrawing.current || !canvasRef.current) return;
+    if (e.cancelable) e.preventDefault();
+    const ctx = canvasRef.current.getContext('2d');
+    if (!ctx) return;
+    
+    const newPos = getCoordinates(e);
+    
+    ctx.beginPath();
+    ctx.moveTo(lastPos.current.x, lastPos.current.y);
+    ctx.lineTo(newPos.x, newPos.y);
+    ctx.strokeStyle = '#f89b29';
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+    
+    lastPos.current = newPos;
+  };
+
+  const stopDrawing = () => {
+    isDrawing.current = false;
+  };
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (canvasRef.current && pitchRef.current) {
+        const ctx = canvasRef.current.getContext('2d');
+        const imgData = ctx?.getImageData(0, 0, canvasRef.current.width, canvasRef.current.height);
+        
+        canvasRef.current.width = pitchRef.current.clientWidth;
+        canvasRef.current.height = pitchRef.current.clientHeight;
+        
+        if (imgData && ctx) ctx.putImageData(imgData, 0, 0);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [loading, selectedTeamId]);
+
+  const clearCanvas = () => {
+    if (!canvasRef.current) return;
+    const ctx = canvasRef.current.getContext('2d');
+    if (ctx) ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+  };
+
+  const [isBenchOpen, setIsBenchOpen] = useState(false);
 
   useEffect(() => {
     const fetchTeams = async () => {
@@ -145,15 +215,24 @@ export function TacticalBoard() {
       
       {/* Sidebar - Banquillo */}
       <div className="w-full lg:w-1/3 bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-white/40 flex flex-col">
-        <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-          <Shield className="w-5 h-5 text-sanatorio-pink" />
-          Pizarra Táctica
-        </h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+            <Shield className="w-5 h-5 text-sanatorio-pink" />
+            Pizarra Táctica
+          </h2>
+          <button 
+            onClick={() => setIsBenchOpen(!isBenchOpen)}
+            className="lg:hidden p-2 bg-slate-100 rounded-lg text-slate-600 hover:bg-slate-200 transition-colors"
+          >
+            <ChevronDown className={`w-5 h-5 transition-transform ${isBenchOpen ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
 
-        <div className="mb-6">
-          <label className="block text-sm font-semibold text-slate-600 mb-2 uppercase tracking-wider">
-            Seleccionar Equipo
-          </label>
+        <div className={`${isBenchOpen ? 'block' : 'hidden'} lg:block flex-col flex-1`}>
+          <div className="mb-6">
+            <label className="block text-sm font-semibold text-slate-600 mb-2 uppercase tracking-wider">
+              Seleccionar Equipo
+            </label>
           <div className="relative">
             <button 
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -245,16 +324,44 @@ export function TacticalBoard() {
           </div>
         </div>
       </div>
+      </div>
 
       {/* Main Area - Cancha */}
       <div className="w-full lg:w-2/3 flex flex-col">
+        {/* Herramientas de dibujo */}
+        <div className="flex items-center justify-between bg-white/90 backdrop-blur-md rounded-2xl p-3 shadow-md border border-white/40 mb-4 overflow-x-auto">
+          <div className="flex items-center gap-2 shrink-0">
+            <button 
+              onClick={() => setIsDrawingMode(false)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-colors ${!isDrawingMode ? 'bg-sanatorio-blue text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+            >
+              <Move className="w-4 h-4" /> Mover
+            </button>
+            <button 
+              onClick={() => setIsDrawingMode(true)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-colors ${isDrawingMode ? 'bg-sanatorio-pink text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+            >
+              <Pen className="w-4 h-4" /> Dibujar
+            </button>
+          </div>
+          <button 
+            onClick={clearCanvas}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors shrink-0"
+          >
+            <Eraser className="w-4 h-4" /> Limpiar
+          </button>
+        </div>
+
         <div className="bg-slate-800 rounded-2xl shadow-2xl overflow-hidden border-4 border-white/20 relative aspect-[3/4] sm:aspect-video w-full touch-none"
              ref={pitchRef}
-             onDragOver={handleDragOver}
-             onDrop={handleDrop}
-             onTouchMove={handleTouchMove}
-             onTouchEnd={handleTouchEnd}
-             onTouchCancel={handleTouchEnd}
+             onDragOver={!isDrawingMode ? handleDragOver : undefined}
+             onDrop={!isDrawingMode ? handleDrop : undefined}
+             onTouchMove={!isDrawingMode ? handleTouchMove : draw}
+             onTouchEnd={!isDrawingMode ? handleTouchEnd : stopDrawing}
+             onTouchCancel={!isDrawingMode ? handleTouchEnd : stopDrawing}
+             onMouseMove={isDrawingMode ? draw : undefined}
+             onMouseUp={isDrawingMode ? stopDrawing : undefined}
+             onMouseLeave={isDrawingMode ? stopDrawing : undefined}
         >
           {/* Fondo de Cancha (Fútbol 5) */}
           <div className="absolute inset-0 bg-green-600/90" style={{ 
@@ -272,6 +379,13 @@ export function TacticalBoard() {
             <div className="absolute bottom-4 left-1/2 w-48 h-24 -ml-24 border-2 border-b-0 border-white/60"></div>
           </div>
 
+          <canvas
+            ref={canvasRef}
+            className={`absolute inset-0 w-full h-full ${isDrawingMode ? 'z-20 cursor-crosshair' : 'z-0 pointer-events-none'}`}
+            onMouseDown={isDrawingMode ? startDrawing : undefined}
+            onTouchStart={isDrawingMode ? startDrawing : undefined}
+          />
+
           {/* Jugadores en Cancha */}
           {pitchPlayers.map(player => {
             const pos = positions[player.id];
@@ -280,12 +394,12 @@ export function TacticalBoard() {
             return (
               <div 
                 key={player.id}
-                draggable
-                onDragStart={(e) => handleDragStart(e, player.id)}
-                onDragEnd={handleDragEnd}
+                draggable={!isDrawingMode}
+                onDragStart={!isDrawingMode ? (e) => handleDragStart(e, player.id) : undefined}
+                onDragEnd={!isDrawingMode ? handleDragEnd : undefined}
                 onDoubleClick={() => handleRemoveFromPitch(player.id)}
-                onTouchStart={(e) => handleTouchStart(e, player.id)}
-                className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing group/player z-10 flex flex-col items-center"
+                onTouchStart={!isDrawingMode ? (e) => handleTouchStart(e, player.id) : undefined}
+                className={`absolute transform -translate-x-1/2 -translate-y-1/2 ${!isDrawingMode ? 'cursor-grab active:cursor-grabbing' : ''} group/player z-10 flex flex-col items-center`}
                 style={{ left: `${pos.x}%`, top: `${pos.y}%`, touchAction: 'none' }}
               >
                 {/* Botón X mobile y desktop hover */}
