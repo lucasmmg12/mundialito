@@ -147,11 +147,17 @@ export const ProdeLeaderboard = () => {
                   </td>
                   <td className="py-3 md:py-4 px-2 md:px-6">
                     <div className="flex items-center gap-2 md:gap-3">
-                      <img 
-                        src={profile.avatar_url || 'https://via.placeholder.com/40'} 
-                        alt="Avatar" 
-                        className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover border border-slate-200 shrink-0 shadow-sm"
-                      />
+                      {profile.avatar_url ? (
+                        <img 
+                          src={profile.avatar_url} 
+                          alt="Avatar" 
+                          className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover border border-slate-200 shrink-0 shadow-sm bg-white"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-slate-200 shrink-0 shadow-sm bg-slate-100 flex items-center justify-center text-lg md:text-xl">
+                          👤
+                        </div>
+                      )}
                       <div className="flex flex-col min-w-0">
                         <span className="font-bold text-slate-700 text-sm md:text-base truncate">{profile.full_name || 'Usuario'}</span>
                         {/* Show team name here on mobile only */}
