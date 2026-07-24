@@ -48,7 +48,7 @@ export const PublicDashboard = () => {
       if (teamsData) setTeams(teamsData);
       
       // 2. Fetch Matches (Completed and Pending)
-      const { data: matchesData } = await supabase.from('matches').select('*, home_team:home_team_id(name), away_team:away_team_id(name)').order('match_date', { ascending: false });
+      const { data: matchesData } = await supabase.from('matches').select('*, home_team:home_team_id(name, logo_url), away_team:away_team_id(name, logo_url)').order('match_date', { ascending: false });
       
       if (matchesData) {
         const completed = matchesData.filter(m => m.status === 'completed');
@@ -414,22 +414,33 @@ export const PublicDashboard = () => {
                 <div className="text-center text-[10px] text-sanatorio-blue font-bold tracking-widest mb-3 bg-slate-50 py-1 rounded">
                   {new Date(match.match_date).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase()}
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="text-right flex-1 font-bold text-slate-800">{match.home_team?.name}</div>
+                <div className="flex items-start justify-between w-full">
+                  <div className="flex flex-col items-center w-[40%] gap-2 text-center">
+                    <img src={match.home_team?.logo_url || `https://api.dicebear.com/7.x/initials/svg?seed=${match.home_team?.name}&backgroundColor=0369a1`} alt={match.home_team?.name} className="w-14 h-14 sm:w-12 sm:h-12 rounded-full border-2 border-slate-200 shadow-sm bg-white object-cover shrink-0" />
+                    <span className="font-bold text-slate-800 text-[11px] sm:text-sm leading-tight max-w-[120px]">{match.home_team?.name}</span>
+                  </div>
                   
+                  <div className="flex flex-col items-center w-[20%] pt-2">
                   {match.status === 'completed' ? (
-                    <div className="mx-4 flex items-center gap-2 bg-gradient-to-r from-sanatorio-blue to-sanatorio-pink px-4 py-1.5 rounded-lg shadow-md">
-                      <span className="font-black text-xl text-white">{match.home_goals}</span>
-                      <span className="text-white/70 font-bold">-</span>
-                      <span className="font-black text-xl text-white">{match.away_goals}</span>
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="flex items-center gap-1 sm:gap-2 bg-gradient-to-r from-sanatorio-blue to-sanatorio-pink px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg shadow-md mb-1">
+                        <span className="font-black text-base sm:text-xl text-white">{match.home_goals}</span>
+                        <span className="text-white/70 font-bold text-sm sm:text-base">-</span>
+                        <span className="font-black text-base sm:text-xl text-white">{match.away_goals}</span>
+                      </div>
+                      <span className="text-[10px] uppercase font-bold text-slate-400">Final</span>
                     </div>
                   ) : (
-                    <div className="mx-4 flex items-center justify-center bg-slate-100 px-4 py-1.5 rounded-lg border border-slate-200">
-                      <span className="font-black text-slate-400">VS</span>
+                    <div className="flex items-center justify-center bg-slate-100 px-3 py-1 sm:px-4 sm:py-1.5 rounded-lg border border-slate-200">
+                      <span className="font-black text-slate-400 text-xs sm:text-sm">VS</span>
                     </div>
                   )}
+                  </div>
 
-                  <div className="text-left flex-1 font-semibold text-slate-600">{match.away_team?.name}</div>
+                  <div className="flex flex-col items-center w-[40%] gap-2 text-center">
+                    <img src={match.away_team?.logo_url || `https://api.dicebear.com/7.x/initials/svg?seed=${match.away_team?.name}&backgroundColor=db2777`} alt={match.away_team?.name} className="w-14 h-14 sm:w-12 sm:h-12 rounded-full border-2 border-slate-200 shadow-sm bg-white object-cover shrink-0" />
+                    <span className="font-semibold text-slate-600 text-[11px] sm:text-sm leading-tight max-w-[120px]">{match.away_team?.name}</span>
+                  </div>
                 </div>
               </div>
             ))}
@@ -456,12 +467,22 @@ export const PublicDashboard = () => {
                 <div className="text-center text-[10px] text-slate-500 font-bold tracking-widest mb-3 py-1 rounded bg-white shadow-sm inline-block px-3 mx-auto flex items-center justify-center w-fit">
                   {new Date(match.match_date).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase()}
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="text-right flex-1 font-bold text-slate-800">{match.home_team?.name}</div>
-                  <div className="mx-4 flex items-center justify-center bg-white px-4 py-1.5 rounded-lg border border-slate-200 shadow-sm">
-                    <span className="font-black text-slate-400">VS</span>
+                <div className="flex items-start justify-between w-full">
+                  <div className="flex flex-col items-center w-[40%] gap-2 text-center">
+                    <img src={match.home_team?.logo_url || `https://api.dicebear.com/7.x/initials/svg?seed=${match.home_team?.name}&backgroundColor=0369a1`} alt={match.home_team?.name} className="w-14 h-14 sm:w-12 sm:h-12 rounded-full border-2 border-slate-200 shadow-sm bg-white object-cover shrink-0" />
+                    <span className="font-bold text-slate-800 text-[11px] sm:text-sm leading-tight max-w-[120px]">{match.home_team?.name}</span>
                   </div>
-                  <div className="text-left flex-1 font-semibold text-slate-600">{match.away_team?.name}</div>
+                  
+                  <div className="flex flex-col items-center w-[20%] pt-2">
+                    <div className="flex items-center justify-center bg-white px-3 py-1 sm:px-4 sm:py-1.5 rounded-lg border border-slate-200 shadow-sm">
+                      <span className="font-black text-slate-400 text-xs sm:text-sm">VS</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-center w-[40%] gap-2 text-center">
+                    <img src={match.away_team?.logo_url || `https://api.dicebear.com/7.x/initials/svg?seed=${match.away_team?.name}&backgroundColor=db2777`} alt={match.away_team?.name} className="w-14 h-14 sm:w-12 sm:h-12 rounded-full border-2 border-slate-200 shadow-sm bg-white object-cover shrink-0" />
+                    <span className="font-semibold text-slate-600 text-[11px] sm:text-sm leading-tight max-w-[120px]">{match.away_team?.name}</span>
+                  </div>
                 </div>
               </div>
             ))}
