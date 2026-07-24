@@ -159,34 +159,79 @@ export const AdminMatches = () => {
     const groupA = shuffledTeams.slice(0, mid);
     const groupB = shuffledTeams.slice(mid);
     
-    let date = new Date();
-    date.setDate(date.getDate() + 1);
-    date.setHours(10, 0, 0, 0);
+    // Función para generar fixture Round-Robin
+    const generateRounds = (groupTeams: any[]) => {
+      let localTeams = [...groupTeams];
+      if (localTeams.length % 2 !== 0) {
+        localTeams.push(null); // 'null' es el equipo comodín (fecha libre)
+      }
 
-    for (let i = 0; i < groupA.length; i++) {
-      for (let j = i + 1; j < groupA.length; j++) {
-        newMatches.push({
-          home_team_id: groupA[i].id,
-          away_team_id: groupA[j].id,
-          home_goals: 0,
-          away_goals: 0,
-          status: 'pending',
-          match_date: date.toISOString(),
-          notes: 'Grupo A'
+      let numRounds = localTeams.length - 1;
+      let matchesPerRound = localTeams.length / 2;
+      let rounds = [];
+
+      for (let round = 0; round < numRounds; round++) {
+        let currentRound = [];
+        for (let match = 0; match < matchesPerRound; match++) {
+          let home = localTeams[match];
+          let away = localTeams[localTeams.length - 1 - match];
+          
+          if (home !== null && away !== null) {
+            // Alternar localía basada en si es ronda par o impar para el equipo fijo
+            if (match === 0 && round % 2 !== 0) {
+              currentRound.push({ home: away, away: home });
+            } else {
+              currentRound.push({ home, away });
+            }
+          }
+        }
+        rounds.push(currentRound);
+        
+        // Rotar equipos (mantener el primero fijo)
+        let fixed = localTeams.shift();
+        let last = localTeams.pop();
+        localTeams.unshift(last);
+        localTeams.unshift(fixed);
+      }
+      return rounds;
+    };
+
+    const roundsA = generateRounds(groupA);
+    const roundsB = generateRounds(groupB);
+
+    const maxRounds = Math.max(roundsA.length, roundsB.length);
+
+    for (let roundIndex = 0; roundIndex < maxRounds; roundIndex++) {
+      // Incrementar la fecha para cada ronda (por ejemplo, 1 día por ronda, o 1 semana)
+      let matchDate = new Date();
+      matchDate.setDate(matchDate.getDate() + 1 + roundIndex);
+      matchDate.setHours(10, 0, 0, 0);
+
+      if (roundIndex < roundsA.length) {
+        roundsA[roundIndex].forEach((match: any) => {
+          newMatches.push({
+            home_team_id: match.home.id,
+            away_team_id: match.away.id,
+            home_goals: 0,
+            away_goals: 0,
+            status: 'pending',
+            match_date: matchDate.toISOString(),
+            notes: 'Grupo A'
+          });
         });
       }
-    }
-    
-    for (let i = 0; i < groupB.length; i++) {
-      for (let j = i + 1; j < groupB.length; j++) {
-        newMatches.push({
-          home_team_id: groupB[i].id,
-          away_team_id: groupB[j].id,
-          home_goals: 0,
-          away_goals: 0,
-          status: 'pending',
-          match_date: date.toISOString(),
-          notes: 'Grupo B'
+
+      if (roundIndex < roundsB.length) {
+        roundsB[roundIndex].forEach((match: any) => {
+          newMatches.push({
+            home_team_id: match.home.id,
+            away_team_id: match.away.id,
+            home_goals: 0,
+            away_goals: 0,
+            status: 'pending',
+            match_date: matchDate.toISOString(),
+            notes: 'Grupo B'
+          });
         });
       }
     }

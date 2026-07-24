@@ -92,7 +92,7 @@ async function createFixture() {
       matchesToInsert.push({
         home_team_id: match.home.id,
         away_team_id: match.away.id,
-        status: 'scheduled',
+        status: 'pending',
         match_date: matchDate, // Hora ficticia
         notes: 'Grupo A'
       });
@@ -103,7 +103,7 @@ async function createFixture() {
       matchesToInsert.push({
         home_team_id: match.home.id,
         away_team_id: match.away.id,
-        status: 'scheduled',
+        status: 'pending',
         match_date: matchDate, // Hora ficticia
         notes: 'Grupo B'
       });
