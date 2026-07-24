@@ -149,7 +149,7 @@ export const AdminMatches = () => {
   const confirmGenerateFixture = async () => {
     setShowConfirmModal(false);
     setGenerating(true);
-    let newMatches = [];
+    let newMatches: any[] = [];
     
     // Mezclar equipos aleatoriamente
     const shuffledTeams = [...teams].sort(() => Math.random() - 0.5);
