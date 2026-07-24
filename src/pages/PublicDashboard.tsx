@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Trophy, Activity, Star, Target, Shield, Lock, BookOpen, Calendar, Image } from 'lucide-react';
+import { useEffect, useState, useMemo } from 'react';
+import { Trophy, Activity, Star, Target, Shield, Lock, BookOpen, Calendar, Image, Filter } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Link } from 'react-router-dom';
 import { Onboarding } from '../components/Onboarding';
@@ -11,6 +11,8 @@ export const PublicDashboard = () => {
   const [recentMatches, setRecentMatches] = useState<any[]>([]);
   const [upcomingMatches, setUpcomingMatches] = useState<any[]>([]);
   const [stats, setStats] = useState<any>({ topScorer: null, topAssists: null, topMVP: null });
+  const [teams, setTeams] = useState<any[]>([]);
+  const [selectedTeamFilter, setSelectedTeamFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [activeStatInfo, setActiveStatInfo] = useState<{title: string, explanation: string} | null>(null);
 
@@ -43,6 +45,7 @@ export const PublicDashboard = () => {
     try {
       // 1. Fetch Teams
       const { data: teamsData } = await supabase.from('teams').select('*').eq('status', 'active');
+      if (teamsData) setTeams(teamsData);
       
       // 2. Fetch Matches (Completed and Pending)
       const { data: matchesData } = await supabase.from('matches').select('*, home_team:home_team_id(name), away_team:away_team_id(name)').order('match_date', { ascending: false });
@@ -121,6 +124,18 @@ export const PublicDashboard = () => {
     }
     setLoading(false);
   };
+
+  const filteredRecentMatches = useMemo(() => {
+    return selectedTeamFilter === 'all' 
+      ? recentMatches 
+      : recentMatches.filter(m => m.home_team_id === selectedTeamFilter || m.away_team_id === selectedTeamFilter);
+  }, [recentMatches, selectedTeamFilter]);
+
+  const filteredUpcomingMatches = useMemo(() => {
+    return selectedTeamFilter === 'all'
+      ? upcomingMatches
+      : upcomingMatches.filter(m => m.home_team_id === selectedTeamFilter || m.away_team_id === selectedTeamFilter);
+  }, [upcomingMatches, selectedTeamFilter]);
 
   const StatCard = ({ title, value, subtitle, icon: Icon, bgGradient, explanation }: any) => (
     <div 
@@ -368,6 +383,23 @@ export const PublicDashboard = () => {
           </div>
         </div>
 
+        {/* TEAM FILTER WIDGET */}
+        <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-lg border-2 border-slate-100 overflow-hidden flex flex-col p-6">
+          <label className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2 uppercase tracking-wide">
+            <Filter className="w-4 h-4 text-sanatorio-blue" /> Filtrar partidos por equipo
+          </label>
+          <select 
+            value={selectedTeamFilter}
+            onChange={(e) => setSelectedTeamFilter(e.target.value)}
+            className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 outline-none focus:border-sanatorio-blue focus:ring-2 focus:ring-sanatorio-blue/20 transition-all font-bold cursor-pointer shadow-sm"
+          >
+            <option value="all">Ver Todos los Equipos</option>
+            {teams.map(t => (
+              <option key={t.id} value={t.id}>{t.name}</option>
+            ))}
+          </select>
+        </div>
+
         <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-lg border-2 border-slate-100 overflow-hidden flex flex-col">
           <div className="px-8 py-6 border-b-4 border-sanatorio-blue bg-gradient-to-r from-slate-50 to-white">
             <h2 className="text-xl font-condensed font-bold text-sanatorio-blue uppercase tracking-wide flex items-center gap-2">
@@ -378,7 +410,7 @@ export const PublicDashboard = () => {
             
             {loading ? (
               <div className="text-center text-slate-500 font-bold">Cargando resultados...</div>
-            ) : recentMatches.map(match => (
+            ) : filteredRecentMatches.map(match => (
               <div key={match.id} className={`bg-white rounded-xl p-4 border shadow-sm transition-colors ${match.status === 'pending' ? 'border-dashed border-slate-300 hover:border-sanatorio-blue' : 'border-slate-100 hover:border-sanatorio-pink'}`}>
                 <div className="text-center text-[10px] text-sanatorio-blue font-bold tracking-widest mb-3 bg-slate-50 py-1 rounded">
                   {new Date(match.match_date).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase()}
@@ -403,8 +435,8 @@ export const PublicDashboard = () => {
               </div>
             ))}
             
-            {recentMatches.length === 0 && !loading && (
-              <div className="text-center text-slate-500 italic text-sm my-auto">Aún no se han registrado partidos oficiales.</div>
+            {filteredRecentMatches.length === 0 && !loading && (
+              <div className="text-center text-slate-500 italic text-sm my-auto">Aún no se han registrado partidos oficiales para esta selección.</div>
             )}
           </div>
         </div>
@@ -420,7 +452,7 @@ export const PublicDashboard = () => {
             
             {loading ? (
               <div className="text-center text-slate-500 font-bold">Cargando partidos...</div>
-            ) : upcomingMatches.map(match => (
+            ) : filteredUpcomingMatches.map(match => (
               <div key={match.id} className="bg-slate-50 rounded-xl p-4 border border-dashed border-slate-300 hover:border-sanatorio-pink transition-colors">
                 <div className="text-center text-[10px] text-slate-500 font-bold tracking-widest mb-3 py-1 rounded bg-white shadow-sm inline-block px-3 mx-auto flex items-center justify-center w-fit">
                   {new Date(match.match_date).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase()}
@@ -435,8 +467,8 @@ export const PublicDashboard = () => {
               </div>
             ))}
             
-            {upcomingMatches.length === 0 && !loading && (
-              <div className="text-center text-slate-500 italic text-sm my-auto">No hay partidos programados próximamente.</div>
+            {filteredUpcomingMatches.length === 0 && !loading && (
+              <div className="text-center text-slate-500 italic text-sm my-auto">No hay partidos programados para esta selección.</div>
             )}
           </div>
         </div>
